@@ -1,18 +1,20 @@
-import Binance, {CandleChartInterval} from 'binance-api-node';
+import Binance from './exchange/binance';
 import moment = require('moment');
+const fs = require('fs');
 
 const fetchData = async () => {
-  const client = Binance();
-  const start = moment('2020-01-01');
+  const client = new Binance();
+  const start = moment().subtract(5, 'days');
 
-  const candles = await client.candles({
-    symbol: 'BTCUSDT',
-    interval: CandleChartInterval.FIVE_MINUTES,
-    startTime: start.valueOf(),
-    limit: 10,
-  });
+  if (!fs.existsSync('historical')) {
+    fs.mkdirSync('historical');
+  }
 
-  console.log(JSON.stringify(candles));
+  const candles = await client.candles('BTCUSDT', start);
+  fs.writeFileSync(
+    'historical/binance-historical.json',
+    JSON.stringify(candles, null, 2)
+  );
 };
 
 fetchData();
