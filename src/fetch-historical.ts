@@ -6,11 +6,12 @@ const fetchData = async () => {
   const client = new Binance();
   const start = moment().subtract(5, 'days');
 
-  for (const pair of await client.perpetuals()) {
-    if (!fs.existsSync('historical')) {
-      fs.mkdirSync('historical');
-    }
+  if (!fs.existsSync('historical')) {
+    fs.mkdirSync('historical');
+  }
 
+  for (const pair of await client.perpetuals()) {
+    console.log(`\nFetching candles for ${pair}`);
     const candles = await client.candles(pair, start);
     fs.writeFileSync(
       `historical/binance-historical-${pair}.json`,
