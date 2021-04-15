@@ -43,10 +43,36 @@ class Binance extends Exchange {
 
       const last = candles[candles.length - 1];
       cursor = moment(last.ts);
-      sleep(100);
+      await sleep(100);
     }
 
     return candles;
+  }
+
+  async perpetuals(minVolumeMM = 100): Promise<string[]> {
+    const quotes = await this.client.futuresAllBookTickers();
+    minVolumeMM *= 1000000;
+
+    // filter out quarterly contracts
+    const pairs = Object.keys(quotes).filter(symbol => !symbol.includes('_'));
+
+    const perps = [];
+    for (const symbol of pairs) {
+      try {
+        const info = await this.client.dailyStats({symbol});
+        const volume = Array.isArray(info)
+          ? parseFloat(info[0].quoteVolume)
+          : parseFloat(info.quoteVolume);
+
+        if (volume > minVolumeMM) {
+          perps.push(symbol);
+        }
+      } catch (e) {
+        console.warn(`Error fetching info for ${symbol}`);
+      }
+    }
+
+    return perps;
   }
 }
 
