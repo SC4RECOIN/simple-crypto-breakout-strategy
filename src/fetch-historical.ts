@@ -4,7 +4,7 @@ const fs = require('fs');
 
 const fetchData = async () => {
   const client = new Binance();
-  const start = moment().subtract(5, 'days');
+  const start = moment('2020-01-01');
 
   if (!fs.existsSync('historical')) {
     fs.mkdirSync('historical');
