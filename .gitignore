@@ -2,3 +2,4 @@ node_modules
 build
 historical
 .DS_Store
+*.sqlite

@@ -1,22 +1,17 @@
 import Binance from './exchange/binance';
+import SQLiteDB from './sqlite';
 import moment = require('moment');
-const fs = require('fs');
+import 'reflect-metadata';
 
 const fetchData = async () => {
+  const sqlite = await SQLiteDB.getConnection();
   const client = new Binance();
   const start = moment('2020-01-01');
-
-  if (!fs.existsSync('historical')) {
-    fs.mkdirSync('historical');
-  }
 
   for (const pair of await client.perpetuals()) {
     console.log(`\nFetching candles for ${pair}`);
     const candles = await client.candles(pair, start);
-    fs.writeFileSync(
-      `historical/binance-historical-${pair}.json`,
-      JSON.stringify(candles, null, 2)
-    );
+    await sqlite.save(candles);
   }
 };
 

@@ -3,7 +3,7 @@ import BinanceSDK, {
   Binance as Client,
 } from 'binance-api-node';
 import moment = require('moment');
-import {Candle} from '../types';
+import {Candle} from '../entity/types';
 import {sleep} from '../utils';
 import Exchange from './abstract';
 
@@ -31,14 +31,14 @@ class Binance extends Exchange {
       });
 
       for (const candle of interval) {
-        candles.push({
-          ts: candle.openTime,
-          open: parseFloat(candle.open),
-          close: parseFloat(candle.close),
-          low: parseFloat(candle.low),
-          high: parseFloat(candle.high),
-          volume: parseFloat(candle.quoteVolume),
-        });
+        const c = new Candle();
+        c.ts = candle.openTime;
+        c.open = parseFloat(candle.open);
+        c.close = parseFloat(candle.close);
+        c.low = parseFloat(candle.low);
+        c.high = parseFloat(candle.high);
+        c.volume = parseFloat(candle.quoteVolume);
+        candles.push(c);
       }
 
       const last = candles[candles.length - 1];
