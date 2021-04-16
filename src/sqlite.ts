@@ -1,7 +1,8 @@
 import {createConnection, Connection} from 'typeorm';
 import {Candle} from './entity/types';
+import {chunk} from './utils';
 
-type DataBaseEntity = Candle;
+export type DataBaseEntity = Candle;
 
 class SQLiteDB {
   connection: Connection;
@@ -28,13 +29,18 @@ class SQLiteDB {
   }
 
   async save(items: DataBaseEntity[]): Promise<number[]> {
+    const entityIDs = [];
     try {
-      const candles = await this.connection.manager.save(items);
-      return candles.map(c => c.id);
+      // chunk large arrays
+      for (const entities of chunk(items, 100)) {
+        const candles = await this.connection.manager.save(entities);
+        entityIDs.push(...candles.map(c => c.id));
+      }
     } catch (e) {
       console.error(`There was an error saving to sqlite: ${e}`);
-      return [];
     }
+
+    return entityIDs;
   }
 
   async getCandles(): Promise<Candle[]> {
