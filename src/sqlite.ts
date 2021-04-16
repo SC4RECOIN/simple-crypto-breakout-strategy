@@ -32,7 +32,7 @@ class SQLiteDB {
     const entityIDs = [];
     try {
       // chunk large arrays
-      for (const entities of chunk(items, 100)) {
+      for (const entities of chunk(items, 500)) {
         const candles = await this.connection.manager.save(entities);
         entityIDs.push(...candles.map(c => c.id));
       }
