@@ -1,5 +1,5 @@
 import {Candle} from '../entity/candle';
-import moment = require('moment');
+import moment from 'moment';
 
 abstract class Exchange {
   abstract candles(symbol: string, start: moment.Moment): Promise<Candle[]>;

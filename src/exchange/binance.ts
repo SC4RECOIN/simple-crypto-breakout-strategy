@@ -2,7 +2,7 @@ import BinanceSDK, {
   CandleChartInterval,
   Binance as Client,
 } from 'binance-api-node';
-import moment = require('moment');
+import moment from 'moment';
 import {Candle} from '../entity/candle';
 import {sleep} from '../utils';
 import Exchange from './abstract';

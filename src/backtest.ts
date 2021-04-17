@@ -1,7 +1,7 @@
 import SQLiteDB from './sqlite';
 import BreakoutStrategy from './strategy';
-import 'reflect-metadata';
 import config from '../config.json';
+import 'reflect-metadata';
 
 const backTest = async () => {
   const sqlite = await SQLiteDB.getConnection();

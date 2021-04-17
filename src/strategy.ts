@@ -1,5 +1,5 @@
-import moment = require('moment');
-import numeral = require('numeral');
+import moment from 'moment';
+import numeral from 'numeral';
 import {Candle} from './entity/candle';
 
 class BreakoutStrategy {
@@ -112,8 +112,13 @@ class BreakoutStrategy {
 
   backtest(candles: Candle[]): void {
     for (const candle of candles) {
+      // for new day targets
       this.reportTrade(candle.open, candle.ts);
+
+      // for stop-loss hits
       this.reportTrade(candle.low, candle.ts);
+
+      // for target hits
       this.reportTrade(candle.high, candle.ts);
     }
   }

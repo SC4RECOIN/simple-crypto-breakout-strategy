@@ -1,6 +1,6 @@
 import Binance from './exchange/binance';
 import SQLiteDB from './sqlite';
-import moment = require('moment');
+import moment from 'moment';
 import 'reflect-metadata';
 
 const fetchData = async () => {
