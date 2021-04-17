@@ -30,8 +30,10 @@ class BreakoutStrategy {
     if (!this.balanceHist.length) {
       console.log('Run `backtest` before printing results');
     }
-    const last = this.balanceHist[this.balanceHist.length - 1];
+    const days = this.balanceHist.length;
+    const last = this.balanceHist[days - 1];
     const ret = last / this.balanceHist[0] - 1;
+    const annual = (1 + ret) ** (365 / days) - 1;
 
     // find max drawdown
     let maxValue = 0;
@@ -41,8 +43,10 @@ class BreakoutStrategy {
       maxDrawdown = Math.min(maxDrawdown, balance / maxValue - 1);
     }
 
-    console.log('return', numeral(ret).format('0.00 %'));
-    console.log('max drawdown', numeral(maxDrawdown).format('0.00 %'));
+    console.log('return: ', numeral(ret).format('0.00 %'));
+    console.log('annualized return: ', numeral(annual).format('0.00 %'));
+    console.log('max drawdown: ', numeral(maxDrawdown).format('0.00 %'));
+    console.log('trades: ', this.tradeCount);
   }
 
   backtest(candles: Candle[]): void {
@@ -75,6 +79,7 @@ class BreakoutStrategy {
 
       // hit buy target
       if (target && !this.holding && candle.high > target) {
+        this.tradeCount += 1;
         this.holding = true;
         this.balance = this.balance / target;
 
