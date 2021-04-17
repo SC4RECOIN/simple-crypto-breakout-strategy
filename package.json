@@ -13,7 +13,8 @@
     "lint": "gts lint",
     "compile": "tsc",
     "fix": "gts fix",
-    "fetch-historical": "tsc && node build/src/fetch-historical.js"
+    "fetch-historical": "tsc && node build/src/fetch-historical.js",
+    "backtest": "tsc && node build/src/backtest.js"
   },
   "devDependencies": {
     "@types/node": "^14.14.41",

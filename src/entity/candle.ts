@@ -6,6 +6,9 @@ export class Candle {
   id: number;
 
   @Column()
+  symbol: string;
+
+  @Column()
   ts: number;
 
   @Column('double')

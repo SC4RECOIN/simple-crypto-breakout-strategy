@@ -1,4 +1,4 @@
-import {Candle} from '../entity/types';
+import {Candle} from '../entity/candle';
 import moment = require('moment');
 
 abstract class Exchange {

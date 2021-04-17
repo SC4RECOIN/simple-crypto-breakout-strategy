@@ -3,7 +3,7 @@ import BinanceSDK, {
   Binance as Client,
 } from 'binance-api-node';
 import moment = require('moment');
-import {Candle} from '../entity/types';
+import {Candle} from '../entity/candle';
 import {sleep} from '../utils';
 import Exchange from './abstract';
 
@@ -38,6 +38,7 @@ class Binance extends Exchange {
         c.low = parseFloat(candle.low);
         c.high = parseFloat(candle.high);
         c.volume = parseFloat(candle.quoteVolume);
+        c.symbol = symbol;
         candles.push(c);
       }
 

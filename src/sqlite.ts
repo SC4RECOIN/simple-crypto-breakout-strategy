@@ -1,5 +1,5 @@
 import {createConnection, Connection} from 'typeorm';
-import {Candle} from './entity/types';
+import {Candle} from './entity/candle';
 import {chunk} from './utils';
 
 export type DataBaseEntity = Candle;
@@ -43,9 +43,9 @@ class SQLiteDB {
     return entityIDs;
   }
 
-  async getCandles(): Promise<Candle[]> {
+  async getCandles(query: {symbol: 'BTCUSDT'}): Promise<Candle[]> {
     const repository = this.connection.getRepository(Candle);
-    return await repository.find();
+    return await repository.find(query);
   }
 }
 
