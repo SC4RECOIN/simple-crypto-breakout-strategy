@@ -1,6 +1,5 @@
 import moment = require('moment');
 import numeral = require('numeral');
-import {Migration} from 'typeorm';
 import {Candle} from './entity/candle';
 
 class BreakoutStrategy {
@@ -10,10 +9,17 @@ class BreakoutStrategy {
   leverage: number;
   sl: number | null;
 
+  // portfolio
   balance: number;
   holding: boolean;
   balanceHist: number[];
   tradeCount: number;
+
+  // track trades
+  lastStart: moment.Moment | null;
+  currentCandle: Candle | null;
+  target: number | null;
+  stoploss: number | null;
 
   constructor(
     k = 0.6,
@@ -59,64 +65,65 @@ class BreakoutStrategy {
     console.log('trades: ', this.tradeCount);
   }
 
-  backtest(candles: Candle[]): void {
-    if (!candles.length) {
-      return;
+  reportTrade(price: number, ts: number): void {
+    if (!this.currentCandle) {
+      this.currentCandle = this.newDayCandle(price);
+      this.lastStart = moment(ts);
     }
 
-    let lastStart = moment(candles[0].ts);
-    let currentCandle = this.newDayCandle(candles[0]);
-    let target, stoploss;
+    const date = moment(ts);
+    if (date.diff(this.lastStart, 'days') > 0) {
+      // calculate next target
+      const range = this.currentCandle.high - this.currentCandle.low;
+      this.target = price + range * this.k;
+      if (this.sl) this.stoploss = this.target * (1 - this.sl);
 
-    for (const candle of candles) {
-      // new day
-      const date = moment(candle.ts);
-      if (date.diff(lastStart, 'days') > 0) {
-        // calculate next target
-        const range = currentCandle.high - currentCandle.low;
-        target = candle.open + range * this.k;
-        if (this.sl) stoploss = target * (1 - this.sl);
-
-        // sell if open position
-        if (this.holding) {
-          this.holding = false;
-          this.balance *= candle.open;
-        }
-
-        lastStart = date;
-        currentCandle = this.newDayCandle(candle);
-        this.balanceHist.push(this.balance);
-      }
-
-      // hit buy target
-      if (target && !this.holding && candle.high > target) {
-        this.tradeCount += 1;
-        this.holding = true;
-        this.balance = this.balance / target;
-      }
-
-      // hit stop loss
-      if (stoploss && this.holding && candle.low < stoploss) {
+      // sell if open position
+      if (this.holding) {
         this.holding = false;
-        this.balance *= stoploss;
-
-        // don't want to rebuy at target
-        target = null;
+        this.balance *= price;
       }
 
-      currentCandle.close = candle.close;
-      currentCandle.high = Math.max(currentCandle.high, candle.high);
-      currentCandle.low = Math.min(currentCandle.low, candle.low);
-      currentCandle.volume += candle.volume;
+      this.lastStart = date;
+      this.currentCandle = this.newDayCandle(price);
+      this.balanceHist.push(this.balance);
+    }
+
+    // hit buy target
+    if (this.target && !this.holding && price > this.target) {
+      this.tradeCount += 1;
+      this.holding = true;
+      this.balance = this.balance / this.target;
+    }
+
+    // hit stop loss
+    if (this.stoploss && this.holding && price < this.stoploss) {
+      this.holding = false;
+      this.balance *= this.stoploss;
+
+      // don't want to rebuy at target
+      this.target = null;
+    }
+
+    this.currentCandle.close = price;
+    this.currentCandle.high = Math.max(this.currentCandle.high, price);
+    this.currentCandle.low = Math.min(this.currentCandle.low, price);
+  }
+
+  backtest(candles: Candle[]): void {
+    for (const candle of candles) {
+      this.reportTrade(candle.open, candle.ts);
+      this.reportTrade(candle.low, candle.ts);
+      this.reportTrade(candle.high, candle.ts);
     }
   }
 
-  newDayCandle(candle: Candle): Candle {
+  newDayCandle(price: number): Candle {
     const dayCandle = new Candle();
-    dayCandle.open = candle.open;
+    dayCandle.open = price;
     dayCandle.volume = 0;
-    dayCandle.high = candle.high;
-    dayCandle.low = candle.low;
+    dayCandle.high = price;
+    dayCandle.low = price;
 
     return dayCandle;
   }
