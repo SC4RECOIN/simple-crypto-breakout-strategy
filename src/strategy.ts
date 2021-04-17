@@ -1,5 +1,6 @@
 import moment = require('moment');
 import numeral = require('numeral');
+import {Migration} from 'typeorm';
 import {Candle} from './entity/candle';
 
 class BreakoutStrategy {
@@ -14,7 +15,12 @@ class BreakoutStrategy {
   balanceHist: number[];
   tradeCount: number;
 
-  constructor(k = 0.6, stopLoss = null, shorting = false, leverage = 1) {
+  constructor(
+    k = 0.6,
+    stopLoss: number | null,
+    shorting = false,
+    leverage = 1
+  ) {
     this.k = k;
     this.shorting = shorting;
     this.leverage = leverage;
@@ -56,7 +62,7 @@ class BreakoutStrategy {
 
     let lastStart = moment(candles[0].ts);
     let currentCandle = this.newDayCandle(candles[0]);
-    let target;
+    let target, stoploss;
 
     for (const candle of candles) {
       // new day
@@ -65,6 +71,7 @@ class BreakoutStrategy {
         // calculate next target
         const range = currentCandle.high - currentCandle.low;
         target = candle.open + range * this.k;
+        if (this.sl) stoploss = target * (1 - this.sl);
 
         // sell if open position
         if (this.holding) {
@@ -82,8 +89,14 @@ class BreakoutStrategy {
         this.tradeCount += 1;
         this.holding = true;
         this.balance = this.balance / target;
+      }
 
-        // don't want to hit sl and then rebuy at target
+      // hit stop loss
+      if (stoploss && this.holding && candle.low < stoploss) {
+        this.holding = false;
+        this.balance *= stoploss;
+
+        // don't want to rebuy at target
         target = null;
       }
 
