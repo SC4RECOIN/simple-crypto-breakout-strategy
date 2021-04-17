@@ -43,7 +43,7 @@ class SQLiteDB {
     return entityIDs;
   }
 
-  async getCandles(query: {symbol: 'BTCUSDT'}): Promise<Candle[]> {
+  async getCandles(query: {symbol: string}): Promise<Candle[]> {
     const repository = this.connection.getRepository(Candle);
     return await repository.find(query);
   }

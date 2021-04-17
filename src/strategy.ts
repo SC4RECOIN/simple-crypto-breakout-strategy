@@ -1,6 +1,7 @@
 import moment from 'moment';
 import numeral from 'numeral';
 import {Candle} from './entity/candle';
+import {maxDrawdown} from './utils';
 
 class BreakoutStrategy {
   // config
@@ -50,18 +51,11 @@ class BreakoutStrategy {
     const last = this.balanceHist[days - 1];
     const ret = last / this.balanceHist[0] - 1;
     const annual = (1 + ret) ** (365 / days) - 1;
-
-    // find max drawdown
-    let maxValue = 0;
-    let maxDrawdown = 0;
-    for (const balance of this.balanceHist) {
-      maxValue = Math.max(maxValue, balance);
-      maxDrawdown = Math.min(maxDrawdown, balance / maxValue - 1);
-    }
+    const mDrawdown = maxDrawdown(this.balanceHist);
 
     console.log('return: ', numeral(ret).format('0.00 %'));
     console.log('annualized return: ', numeral(annual).format('0.00 %'));
-    console.log('max drawdown: ', numeral(maxDrawdown).format('0.00 %'));
+    console.log('max drawdown: ', numeral(mDrawdown).format('0.00 %'));
     console.log('trades: ', this.tradeCount);
   }
 

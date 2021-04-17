@@ -11,3 +11,14 @@ export const chunk = (arr: DataBaseEntity[], size = 100) => {
   }
   return chunckedArr;
 };
+
+export const maxDrawdown = (portfolioValues: number[]): number => {
+  let maxValue = 0;
+  let maxDrawdown = 0;
+  for (const balance of portfolioValues) {
+    maxValue = Math.max(maxValue, balance);
+    maxDrawdown = Math.min(maxDrawdown, balance / maxValue - 1);
+  }
+
+  return maxDrawdown;
+};
