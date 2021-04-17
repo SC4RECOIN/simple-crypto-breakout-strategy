@@ -21,6 +21,10 @@ class BreakoutStrategy {
     shorting = false,
     leverage = 1
   ) {
+    if (shorting) {
+      throw Error('Shorting has not been implemented');
+    }
+
     this.k = k;
     this.shorting = shorting;
     this.leverage = leverage;
