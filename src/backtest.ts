@@ -8,6 +8,7 @@ const backTest = async () => {
 
   const strategy = new BreakoutStrategy();
   strategy.backtest(candles);
+  strategy.printStats();
 };
 
 backTest();
