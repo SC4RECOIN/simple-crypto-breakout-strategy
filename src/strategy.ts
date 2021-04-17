@@ -40,15 +40,15 @@ class BreakoutStrategy {
     this.tradeCount = 0;
     this.holding = false;
     this.balance = 10000;
-    this.balanceHist = [];
+    this.balanceHist = [10000];
   }
 
   printStats(): void {
     if (!this.balanceHist.length) {
       console.log('Run `backtest` before printing results');
     }
-    const days = this.balanceHist.length;
-    const last = this.balanceHist[days - 1];
+    const days = this.balanceHist.length - 1;
+    const last = this.balanceHist[days];
     const ret = last / this.balanceHist[0] - 1;
     const annual = (1 + ret) ** (365 / days) - 1;
     const mDrawdown = maxDrawdown(this.balanceHist);
@@ -80,6 +80,12 @@ class BreakoutStrategy {
 
       this.lastStart = date;
       this.currentCandle = this.newDayCandle(price);
+
+      // simulate leverage
+      const lastBalance = this.balanceHist[this.balanceHist.length - 1];
+      const diff = this.balance - lastBalance;
+      this.balance = lastBalance + diff * this.leverage;
+
       this.balanceHist.push(this.balance);
     }
 
