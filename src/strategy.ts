@@ -10,6 +10,7 @@ class BreakoutStrategy {
   shorting: boolean;
   leverage: number;
   sl: number | null;
+  alwaysLong: boolean;
 
   // portfolio
   balance: number;
@@ -32,6 +33,7 @@ class BreakoutStrategy {
     this.shorting = config.shorting;
     this.leverage = config.leverage;
     this.sl = config.stopLoss;
+    this.alwaysLong = config.alwaysLong;
 
     this.tradeCount = 0;
     this.holding = false;
@@ -43,6 +45,7 @@ class BreakoutStrategy {
     if (!this.balanceHist.length) {
       console.log('Run `backtest` before printing results');
     }
+
     const days = this.balanceHist.length - 1;
     const last = this.balanceHist[days];
     const ret = last / this.balanceHist[0] - 1;
@@ -97,6 +100,10 @@ class BreakoutStrategy {
       // new range target
       this.long = this.currentCandle.close > this.currentCandle.open;
       let range = this.currentCandle.high - this.currentCandle.low;
+
+      if (this.alwaysLong) {
+        this.long = true;
+      }
 
       let stoploss = this.sl;
       if (!this.long) {

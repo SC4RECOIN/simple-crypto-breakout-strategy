@@ -15,7 +15,3 @@ Fetch 5min historical data from Binance. Uses public endpoints so keys are not r
 ```bash
 npm run fetch-historical
 ```
-
-### To do
-
-Day candles should be UTC and not local tz

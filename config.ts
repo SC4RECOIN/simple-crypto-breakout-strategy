@@ -9,7 +9,7 @@ export const config: Config = {
   shorting: false,
 
   // target leverge
-  leverage: 4,
+  leverage: 1,
 
   // stop-loss when opening position
   // cannot set stop-loss and trailing-stop
@@ -21,5 +21,5 @@ export const config: Config = {
 
   // always be long
   // set long targets even if previous day was down
-  alwaysLong: false,
+  alwaysLong: true,
 };
