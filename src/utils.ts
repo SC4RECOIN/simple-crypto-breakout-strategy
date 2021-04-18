@@ -1,3 +1,4 @@
+import {Config} from './entity/types';
 import {DataBaseEntity} from './sqlite';
 
 export const sleep = (ms: number) => {
@@ -21,4 +22,22 @@ export const maxDrawdown = (portfolioValues: number[]): number => {
   }
 
   return maxDrawdown;
+};
+
+export const validateConfig = (config: Config): void => {
+  if (config.k < 0) {
+    throw new Error('k cannot be negative');
+  }
+
+  if (config.leverage < 0) {
+    throw new Error('leverage cannot be negative');
+  }
+
+  if (config.stopLoss && config.trailingStop) {
+    throw new Error('cannot specify stoploss and trailing stop');
+  }
+
+  if (config.alwaysLong && config.shorting) {
+    throw new Error('cannot short and be always longs');
+  }
 };

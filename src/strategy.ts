@@ -1,7 +1,8 @@
 import moment from 'moment';
 import numeral from 'numeral';
 import {Candle} from './entity/candle';
-import {maxDrawdown} from './utils';
+import {Config} from './entity/types';
+import {maxDrawdown, validateConfig} from './utils';
 
 class BreakoutStrategy {
   // config
@@ -24,16 +25,13 @@ class BreakoutStrategy {
   stoploss: number | null;
   long: boolean;
 
-  constructor(
-    k = 0.6,
-    stopLoss: number | null,
-    shorting = false,
-    leverage = 1
-  ) {
-    this.k = k;
-    this.shorting = shorting;
-    this.leverage = leverage;
-    this.sl = stopLoss;
+  constructor(config: Config) {
+    validateConfig(config);
+
+    this.k = config.k;
+    this.shorting = config.shorting;
+    this.leverage = config.leverage;
+    this.sl = config.stopLoss;
 
     this.tradeCount = 0;
     this.holding = false;

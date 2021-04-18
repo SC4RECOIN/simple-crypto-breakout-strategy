@@ -1,6 +1,6 @@
 import SQLiteDB from './sqlite';
 import BreakoutStrategy from './strategy';
-import config from '../config.json';
+import {config} from '../config';
 import numeral from 'numeral';
 import {maxDrawdown} from './utils';
 import 'reflect-metadata';
@@ -9,12 +9,7 @@ const backTest = async () => {
   const sqlite = await SQLiteDB.getConnection();
   const candles = await sqlite.getCandles({symbol: 'BTCUSDT'});
 
-  const strategy = new BreakoutStrategy(
-    config.k,
-    config.stopLoss,
-    config.shorting,
-    config.leverage
-  );
+  const strategy = new BreakoutStrategy(config);
   strategy.backtest(candles);
   strategy.printStats();
 
