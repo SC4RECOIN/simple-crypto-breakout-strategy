@@ -87,7 +87,7 @@ class BreakoutStrategy {
   reportTrade(price: number, ts: number): void {
     if (!this.currentCandle) {
       this.currentCandle = this.newDayCandle(price);
-      this.lastStart = moment(ts);
+      this.lastStart = moment(ts).utc().startOf('day');
       return;
     }
 
