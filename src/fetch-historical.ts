@@ -6,7 +6,7 @@ import 'reflect-metadata';
 const fetchData = async () => {
   const sqlite = await SQLiteDB.getConnection();
   const client = new Binance();
-  const start = moment('2020-01-01');
+  const start = moment('2017-12-01');
   const pairs = await client.perpetuals();
 
   for (const [idx, pair] of pairs.entries()) {

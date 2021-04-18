@@ -57,10 +57,16 @@ class BreakoutStrategy {
     console.log('trades: ', this.tradeCount);
   }
 
+  currentPositionReturn(price: number) {
+    const posReturn = price / this.entry - 1;
+    if (!this.long) return posReturn * -1;
+    return posReturn;
+  }
+
   closePositions(price: number) {
     // sell if open position
     if (this.holding) {
-      const posReturn = (price / this.entry - 1) * this.balance;
+      const posReturn = this.currentPositionReturn(price) * this.balance;
 
       // simulate leverage
       this.balance += posReturn * this.leverage;
@@ -125,11 +131,22 @@ class BreakoutStrategy {
     if (this.stoploss && this.holding) {
       // close long
       if (this.long && price < this.stoploss) {
-        this.closePositions(price);
+        this.closePositions(this.stoploss);
       }
       // close short
       if (!this.long && price > this.stoploss) {
-        this.closePositions(price);
+        this.closePositions(this.stoploss);
+      }
+    }
+
+    if (this.holding) {
+      const posReturn = this.currentPositionReturn(price);
+      if (posReturn * this.leverage < -0.9) {
+        console.log('Long: ', this.long);
+        console.log('Entry price: ', this.entry);
+        console.log('Price: ', price);
+        console.log('Date: ', date);
+        throw new Error('Account liquidated');
       }
     }
 
