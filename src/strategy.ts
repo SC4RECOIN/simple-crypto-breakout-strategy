@@ -15,6 +15,7 @@ class BreakoutStrategy {
   holding: boolean;
   balanceHist: number[];
   tradeCount: number;
+  entry: number;
 
   // track trades
   lastStart: moment.Moment | null;
@@ -59,9 +60,21 @@ class BreakoutStrategy {
   closePositions(price: number) {
     // sell if open position
     if (this.holding) {
+      const posReturn = (price / this.entry - 1) * this.balance;
+
+      // simulate leverage
+      this.balance += posReturn * this.leverage;
       this.holding = false;
-      this.balance *= price;
     }
+  }
+
+  openPosition(price: number) {
+    this.tradeCount += 1;
+    this.holding = true;
+    this.entry = this.target || price;
+
+    // don't want to rebuy until we get new target
+    this.target = null;
   }
 
   reportTrade(price: number, ts: number): void {
@@ -73,12 +86,17 @@ class BreakoutStrategy {
 
     const date = moment(ts);
     if (date.diff(this.lastStart, 'days') > 0) {
+      // close positions
+      this.closePositions(price);
+      this.balanceHist.push(this.balance);
+
+      // new range target
       this.long = this.currentCandle.close > this.currentCandle.open;
       let range = this.currentCandle.high - this.currentCandle.low;
 
       let stoploss = this.sl;
       if (!this.long) {
-        range *= range * -1;
+        range *= -1;
         if (stoploss) stoploss *= -1;
       }
 
@@ -86,32 +104,33 @@ class BreakoutStrategy {
       this.target = price + range * this.k;
       if (stoploss) this.stoploss = this.target * (1 - stoploss);
 
-      this.closePositions(price);
+      // reset day candle
       this.lastStart = date;
       this.currentCandle = this.newDayCandle(price);
-
-      // simulate leverage
-      const lastBalance = this.balanceHist[this.balanceHist.length - 1];
-      const diff = this.balance - lastBalance;
-      this.balance = lastBalance + diff * this.leverage;
-
-      this.balanceHist.push(this.balance);
     }
 
-    // hit long target
-    if (this.long && this.target && !this.holding && price > this.target) {
-      this.tradeCount += 1;
-      this.holding = true;
-      this.balance = this.balance / this.target;
+    if (this.target && !this.holding) {
+      // hit long target
+      if (this.long && price > this.target) {
+        this.openPosition(price);
+      }
 
-      // don't want to rebuy until we get new target
-      this.target = null;
+      // hit short target
+      if (!this.long && this.shorting && price < this.target) {
+        this.openPosition(price);
+      }
     }
 
     // hit stop loss
-    if (this.stoploss && this.holding && price < this.stoploss) {
-      this.holding = false;
-      this.balance *= this.stoploss;
+    if (this.stoploss && this.holding) {
+      // close long
+      if (this.long && price < this.stoploss) {
+        this.closePositions(price);
+      }
+      // close short
+      if (!this.long && price > this.stoploss) {
+        this.closePositions(price);
+      }
     }
 
     this.currentCandle.close = price;
