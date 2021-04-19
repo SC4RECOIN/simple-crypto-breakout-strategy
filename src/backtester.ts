@@ -94,7 +94,7 @@ class BackTester {
     this.target = null;
   }
 
-  reportTrade(price: number, ts: number): void {
+  reportTrade(symbol: string, price: number, ts: number): void {
     if (!this.currentCandle) {
       this.currentCandle = this.newDayCandle(price);
       this.lastStart = moment(ts).utc().startOf('day');
@@ -190,27 +190,33 @@ class BackTester {
 
   async backtest(): Promise<void> {
     const sqlite = await SQLiteDB.getConnection();
-    const candles = await sqlite.getCandles({symbol: 'ETHUSDT'});
+    const candles: {[key: number]: Candle[]} = {};
+    const timestamps = new Set();
 
-    for (const candle of candles) {
-      // for new day targets
-      this.reportTrade(candle.open, candle.ts);
+    for (const pair of this.pairs) {
+      for (const candle of await sqlite.getCandles({symbol: pair})) {
+        timestamps.add(candle.ts);
+        candles[candle.ts] ||= [];
+        candles[candle.ts].push(candle);
+      }
+    }
 
-      // for stop-loss hits and target hits
-      if (!this.holding && !this.long) {
-        this.reportTrade(candle.low, candle.ts);
-        this.reportTrade(candle.high, candle.ts);
-      } else {
-        this.reportTrade(candle.high, candle.ts);
-        this.reportTrade(candle.low, candle.ts);
+    for (const ts of [...timestamps].sort()) {
+      const key = ts as number;
+      for (const candle of candles[key]) {
+        this.reportTrade(candle.symbol, candle.open, candle.ts);
+        this.reportTrade(candle.symbol, candle.high, candle.ts);
+        this.reportTrade(candle.symbol, candle.low, candle.ts);
       }
     }
 
     this.printStats();
 
-    const b = candles[candles.length - 1].close / candles[0].open - 1;
-    const mDrawdown = maxDrawdown(candles.map(c => c.close));
-    console.log('benchmark: ', numeral(b).format('0.00 %'));
+    // benchmartk against buy & hold BTCUSDT
+    const btc = await sqlite.getCandles({symbol: 'BTCUSDT'});
+    const bench = btc[btc.length - 1].close / btc[0].open - 1;
+    const mDrawdown = maxDrawdown(btc.map(c => c.close));
+    console.log('benchmark: ', numeral(bench).format('0.00 %'));
     console.log('benchmark md: ', numeral(mDrawdown).format('0.00 %'));
   }
 
