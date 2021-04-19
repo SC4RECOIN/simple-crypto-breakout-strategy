@@ -13,7 +13,7 @@
     "lint": "gts lint",
     "compile": "tsc",
     "fix": "gts fix",
-    "fetch-historical": "tsc && node build/src/fetch-historical.js",
+    "fetch-historical": "tsc && node build/src/index.js fetch-historical",
     "backtest": "tsc && node build/src/index.js backtest"
   },
   "devDependencies": {

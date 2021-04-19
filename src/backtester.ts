@@ -4,7 +4,6 @@ import {Candle} from './entity/candle';
 import {Config} from './entity/types';
 import SQLiteDB from './sqlite';
 import {maxDrawdown, validateConfig} from './utils';
-import 'reflect-metadata';
 
 class BackTester {
   // config

@@ -24,5 +24,5 @@ export const config: Config = {
   alwaysLong: true,
 
   // trading pairs to set targets for
-  universe: ['BTCUSDT'],
+  universe: ['BTCUSDT', 'ETHUSDT', 'XRPUSDT', 'LINKUSDT', 'LTCUSDT', 'ADAUSDT'],
 };

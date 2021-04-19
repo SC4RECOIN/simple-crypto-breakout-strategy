@@ -1,6 +1,7 @@
 import {createConnection, Connection} from 'typeorm';
 import {Candle} from './entity/candle';
 import {chunk} from './utils';
+import 'reflect-metadata';
 
 export type DataBaseEntity = Candle;
 
