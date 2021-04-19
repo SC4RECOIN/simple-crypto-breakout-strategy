@@ -10,6 +10,7 @@ class BreakoutStrategy {
   shorting: boolean;
   leverage: number;
   sl: number | null;
+  tStop: number | null;
   alwaysLong: boolean;
 
   // portfolio
@@ -26,6 +27,10 @@ class BreakoutStrategy {
   stoploss: number | null;
   long: boolean;
 
+  // high water mark for tStop
+  hwm: number;
+  lwm: number;
+
   constructor(config: Config) {
     validateConfig(config);
 
@@ -33,9 +38,11 @@ class BreakoutStrategy {
     this.shorting = config.shorting;
     this.leverage = config.leverage;
     this.sl = config.stopLoss;
+    this.tStop = config.trailingStop;
     this.alwaysLong = config.alwaysLong;
 
     this.tradeCount = 0;
+    this.hwm = 0;
     this.holding = false;
     this.balance = 10000;
     this.balanceHist = [10000];
@@ -88,10 +95,14 @@ class BreakoutStrategy {
     if (!this.currentCandle) {
       this.currentCandle = this.newDayCandle(price);
       this.lastStart = moment(ts).utc().startOf('day');
+      this.hwm = price;
       return;
     }
 
     const date = moment(ts);
+    this.hwm = Math.max(this.hwm, price);
+    this.lwm = Math.min(this.lwm, price);
+
     if (date.diff(this.lastStart, 'days') > 0) {
       // close positions
       this.closePositions(price);
@@ -105,7 +116,7 @@ class BreakoutStrategy {
         this.long = true;
       }
 
-      let stoploss = this.sl;
+      let stoploss = this.sl || this.tStop;
       if (!this.long) {
         range *= -1;
         if (stoploss) stoploss *= -1;
@@ -115,9 +126,22 @@ class BreakoutStrategy {
       this.target = price + range * this.k;
       if (stoploss) this.stoploss = this.target * (1 - stoploss);
 
-      // reset day candle
+      // reset day candle and water marks
       this.lastStart = date;
+      this.hwm = price;
+      this.lwm = price;
       this.currentCandle = this.newDayCandle(price);
+    }
+
+    // adjust trailing stop-loss
+    if (this.tStop) {
+      if (this.long) {
+        const tStop = this.hwm * (1 - this.tStop);
+        this.stoploss = Math.max(this.stoploss || 0, tStop);
+      } else {
+        const tStop = this.lwm * (1 + this.tStop);
+        this.stoploss = Math.min(this.stoploss || 0, tStop);
+      }
     }
 
     if (this.target && !this.holding) {
@@ -132,7 +156,7 @@ class BreakoutStrategy {
       }
     }
 
-    // hit stop loss
+    // hit stop-loss
     if (this.stoploss && this.holding) {
       // close long
       if (this.long && price < this.stoploss) {
@@ -144,6 +168,7 @@ class BreakoutStrategy {
       }
     }
 
+    // check if liquidated
     if (this.holding) {
       const posReturn = this.currentPositionReturn(price);
       if (posReturn * this.leverage < -0.9) {
