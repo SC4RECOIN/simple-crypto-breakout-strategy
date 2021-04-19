@@ -2,9 +2,11 @@ import moment from 'moment';
 import numeral from 'numeral';
 import {Candle} from './entity/candle';
 import {Config} from './entity/types';
+import SQLiteDB from './sqlite';
 import {maxDrawdown, validateConfig} from './utils';
+import 'reflect-metadata';
 
-class BreakoutStrategy {
+class BackTester {
   // config
   k: number;
   shorting: boolean;
@@ -12,6 +14,7 @@ class BreakoutStrategy {
   sl: number | null;
   tStop: number | null;
   alwaysLong: boolean;
+  pairs: string[];
 
   // portfolio
   balance: number;
@@ -40,6 +43,7 @@ class BreakoutStrategy {
     this.sl = config.stopLoss;
     this.tStop = config.trailingStop;
     this.alwaysLong = config.alwaysLong;
+    this.pairs = config.universe;
 
     this.tradeCount = 0;
     this.hwm = 0;
@@ -185,7 +189,10 @@ class BreakoutStrategy {
     this.currentCandle.low = Math.min(this.currentCandle.low, price);
   }
 
-  backtest(candles: Candle[]): void {
+  async backtest(): Promise<void> {
+    const sqlite = await SQLiteDB.getConnection();
+    const candles = await sqlite.getCandles({symbol: 'ETHUSDT'});
+
     for (const candle of candles) {
       // for new day targets
       this.reportTrade(candle.open, candle.ts);
@@ -199,6 +206,13 @@ class BreakoutStrategy {
         this.reportTrade(candle.low, candle.ts);
       }
     }
+
+    this.printStats();
+
+    const b = candles[candles.length - 1].close / candles[0].open - 1;
+    const mDrawdown = maxDrawdown(candles.map(c => c.close));
+    console.log('benchmark: ', numeral(b).format('0.00 %'));
+    console.log('benchmark md: ', numeral(mDrawdown).format('0.00 %'));
   }
 
   newDayCandle(price: number): Candle {
@@ -212,4 +226,4 @@ class BreakoutStrategy {
   }
 }
 
-export default BreakoutStrategy;
+export default BackTester;

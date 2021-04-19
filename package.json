@@ -14,7 +14,7 @@
     "compile": "tsc",
     "fix": "gts fix",
     "fetch-historical": "tsc && node build/src/fetch-historical.js",
-    "backtest": "tsc && node build/src/backtest.js"
+    "backtest": "tsc && node build/src/index.js backtest"
   },
   "devDependencies": {
     "@types/node": "^14.14.41",

@@ -9,7 +9,7 @@ export const config: Config = {
   shorting: false,
 
   // target leverge
-  leverage: 5,
+  leverage: 1,
 
   // stop-loss when opening position
   // cannot set stop-loss and trailing-stop
