@@ -22,4 +22,7 @@ export const config: Config = {
   // always be long
   // set long targets even if previous day was down
   alwaysLong: true,
+
+  // trading pairs to set targets for
+  universe: ['BTCUSDT'],
 };

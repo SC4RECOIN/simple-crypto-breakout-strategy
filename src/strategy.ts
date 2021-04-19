@@ -127,7 +127,7 @@ class BreakoutStrategy {
       if (stoploss) this.stoploss = this.target * (1 - stoploss);
 
       // reset day candle and water marks
-      this.lastStart = date;
+      this.lastStart = this.lastStart?.add(1, 'days') || date;
       this.hwm = price;
       this.lwm = price;
       this.currentCandle = this.newDayCandle(price);
@@ -190,11 +190,14 @@ class BreakoutStrategy {
       // for new day targets
       this.reportTrade(candle.open, candle.ts);
 
-      // for stop-loss hits
-      this.reportTrade(candle.low, candle.ts);
-
-      // for target hits
-      this.reportTrade(candle.high, candle.ts);
+      // for stop-loss hits and target hits
+      if (!this.holding && !this.long) {
+        this.reportTrade(candle.low, candle.ts);
+        this.reportTrade(candle.high, candle.ts);
+      } else {
+        this.reportTrade(candle.high, candle.ts);
+        this.reportTrade(candle.low, candle.ts);
+      }
     }
   }
 

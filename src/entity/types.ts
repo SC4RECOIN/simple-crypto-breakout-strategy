@@ -5,4 +5,5 @@ export interface Config {
   stopLoss: number | null;
   trailingStop: number | null;
   alwaysLong: boolean;
+  universe: string[];
 }
