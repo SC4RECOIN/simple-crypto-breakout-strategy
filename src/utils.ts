@@ -41,10 +41,6 @@ export const validateConfig = (config: Config): void => {
     throw new Error('cannot short and be always longs');
   }
 
-  if (!config.universe || config.universe.length === 0) {
-    throw new Error('universe must have at least one pair');
-  }
-
   if (!config.stopLoss && !config.trailingStop) {
     throw new Error('specify stoploss or trailing stop');
   }

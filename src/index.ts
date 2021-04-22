@@ -8,7 +8,7 @@ const fetchData = async () => {
   const sqlite = await SQLiteDB.getConnection();
   const client = new Binance();
   const start = moment('2017-12-01');
-  const pairs = config.universe;
+  const pairs = [config.pair];
 
   for (const [idx, pair] of pairs.entries()) {
     console.log(`\nFetching candles for ${pair} (${idx + 1}/${pairs.length})`);

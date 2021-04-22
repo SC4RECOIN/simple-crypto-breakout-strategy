@@ -13,7 +13,7 @@ export const config: Config = {
 
   // stop-loss when opening position
   // cannot set stop-loss and trailing-stop
-  stopLoss: 0.03,
+  stopLoss: 0.02,
 
   // trailing-stop when opening position
   // cannot set stop-loss and trailing-stop
@@ -23,6 +23,6 @@ export const config: Config = {
   // set long targets even if previous day was down
   alwaysLong: true,
 
-  // trading pairs to set targets for
-  universe: ['BTCUSDT', 'ETHUSDT', 'XRPUSDT', 'LINKUSDT', 'LTCUSDT', 'ADAUSDT'],
+  // trading pair to set targets for
+  pair: 'ETHUSDT',
 };

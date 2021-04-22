@@ -13,7 +13,7 @@ class BackTester {
   sl: number | null;
   tStop: number | null;
   alwaysLong: boolean;
-  pairs: string[];
+  pair: string;
 
   // portfolio
   balance: number;
@@ -26,7 +26,7 @@ class BackTester {
   lastStart: moment.Moment | null;
   currentCandle: Candle | null;
   target: number | null;
-  stoploss: number | null;
+  stoploss: number;
   long: boolean;
 
   // high water mark for tStop
@@ -42,10 +42,11 @@ class BackTester {
     this.sl = config.stopLoss;
     this.tStop = config.trailingStop;
     this.alwaysLong = config.alwaysLong;
-    this.pairs = config.universe;
+    this.pair = config.pair;
 
     this.tradeCount = 0;
-    this.hwm = 0;
+    this.hwm = Number.NEGATIVE_INFINITY;
+    this.lwm = Number.POSITIVE_INFINITY;
     this.holding = false;
     this.balance = 10000;
     this.balanceHist = [10000];
@@ -62,6 +63,7 @@ class BackTester {
     const annual = (1 + ret) ** (365 / days) - 1;
     const mDrawdown = maxDrawdown(this.balanceHist);
 
+    console.log('days: ', days);
     console.log('return: ', numeral(ret).format('0.00 %'));
     console.log('annualized return: ', numeral(annual).format('0.00 %'));
     console.log('max drawdown: ', numeral(mDrawdown).format('0.00 %'));
@@ -94,21 +96,20 @@ class BackTester {
     this.target = null;
   }
 
-  reportTrade(symbol: string, price: number, ts: number): void {
+  reportTrade(c: Candle): void {
     if (!this.currentCandle) {
-      this.currentCandle = this.newDayCandle(price);
-      this.lastStart = moment(ts).utc().startOf('day');
-      this.hwm = price;
+      this.currentCandle = this.newDayCandle(c);
+      this.lastStart = moment(c.ts).utc().startOf('day');
       return;
     }
 
-    const date = moment(ts);
-    this.hwm = Math.max(this.hwm, price);
-    this.lwm = Math.min(this.lwm, price);
+    const date = moment(c.ts);
+    this.hwm = Math.max(this.hwm, c.high);
+    this.lwm = Math.min(this.lwm, c.low);
 
     if (date.diff(this.lastStart, 'days') > 0) {
       // close positions
-      this.closePositions(price);
+      this.closePositions(c.close);
       this.balanceHist.push(this.balance);
 
       // new range target
@@ -126,14 +127,14 @@ class BackTester {
       }
 
       // position target and stop loss
-      this.target = price + range * this.k;
+      this.target = c.open + range * this.k;
       if (stoploss) this.stoploss = this.target * (1 - stoploss);
 
       // reset day candle and water marks
       this.lastStart = this.lastStart?.add(1, 'days') || date;
-      this.hwm = price;
-      this.lwm = price;
-      this.currentCandle = this.newDayCandle(price);
+      this.hwm = c.high;
+      this.lwm = c.low;
+      this.currentCandle = this.newDayCandle(c);
     }
 
     // adjust trailing stop-loss
@@ -149,43 +150,44 @@ class BackTester {
 
     if (this.target && !this.holding) {
       // hit long target
-      if (this.long && price > this.target) {
-        this.openPosition(price);
+      if (this.long && c.high > this.target) {
+        this.openPosition(this.target);
       }
 
       // hit short target
-      if (!this.long && this.shorting && price < this.target) {
-        this.openPosition(price);
+      if (!this.long && this.shorting && c.low < this.target) {
+        this.openPosition(this.target);
       }
     }
 
     // hit stop-loss
     if (this.stoploss && this.holding) {
       // close long
-      if (this.long && price < this.stoploss) {
+      if (this.long && c.low < this.stoploss) {
         this.closePositions(this.stoploss);
       }
       // close short
-      if (!this.long && price > this.stoploss) {
+      if (!this.long && c.high > this.stoploss) {
         this.closePositions(this.stoploss);
       }
     }
 
     // check if liquidated
     if (this.holding) {
-      const posReturn = this.currentPositionReturn(price);
+      const value = this.long ? c.low : c.high;
+      const posReturn = this.currentPositionReturn(value);
       if (posReturn * this.leverage < -0.9) {
         console.log('Long: ', this.long);
         console.log('Entry price: ', this.entry);
-        console.log('Price: ', price);
+        console.log('Price: ', value);
         console.log('Date: ', date);
         throw new Error('Account liquidated');
       }
     }
 
-    this.currentCandle.close = price;
-    this.currentCandle.high = Math.max(this.currentCandle.high, price);
-    this.currentCandle.low = Math.min(this.currentCandle.low, price);
+    this.currentCandle.close = c.close;
+    this.currentCandle.high = Math.max(this.currentCandle.high, c.high);
+    this.currentCandle.low = Math.min(this.currentCandle.low, c.low);
   }
 
   async backtest(): Promise<void> {
@@ -193,39 +195,34 @@ class BackTester {
     const candles: {[key: number]: Candle[]} = {};
     const timestamps = new Set();
 
-    for (const pair of this.pairs) {
-      for (const candle of await sqlite.getCandles({symbol: pair})) {
-        timestamps.add(candle.ts);
-        candles[candle.ts] ||= [];
-        candles[candle.ts].push(candle);
-      }
+    const c = await sqlite.getCandles({symbol: this.pair});
+    for (const candle of c) {
+      timestamps.add(candle.ts);
+      candles[candle.ts] ||= [];
+      candles[candle.ts].push(candle);
     }
 
     for (const ts of [...timestamps].sort()) {
       const key = ts as number;
       for (const candle of candles[key]) {
-        this.reportTrade(candle.symbol, candle.open, candle.ts);
-        this.reportTrade(candle.symbol, candle.high, candle.ts);
-        this.reportTrade(candle.symbol, candle.low, candle.ts);
+        this.reportTrade(candle);
       }
     }
 
     this.printStats();
 
-    // benchmartk against buy & hold BTCUSDT
-    const btc = await sqlite.getCandles({symbol: 'BTCUSDT'});
-    const bench = btc[btc.length - 1].close / btc[0].open - 1;
-    const mDrawdown = maxDrawdown(btc.map(c => c.close));
+    // benchmark
+    const bench = c[c.length - 1].close / c[0].open - 1;
+    const mDrawdown = maxDrawdown(c.map(x => x.close));
     console.log('benchmark: ', numeral(bench).format('0.00 %'));
     console.log('benchmark md: ', numeral(mDrawdown).format('0.00 %'));
   }
 
-  newDayCandle(price: number): Candle {
+  newDayCandle(candle: Candle): Candle {
     const dayCandle = new Candle();
-    dayCandle.open = price;
-    dayCandle.volume = 0;
-    dayCandle.high = price;
-    dayCandle.low = price;
+    dayCandle.open = candle.open;
+    dayCandle.high = candle.high;
+    dayCandle.low = candle.low;
 
     return dayCandle;
   }
