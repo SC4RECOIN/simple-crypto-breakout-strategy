@@ -14,7 +14,7 @@ const fetchData = async () => {
     console.log(`\nFetching candles for ${pair} (${idx + 1}/${pairs.length})`);
     const candles = await client.candles(pair, start);
 
-    console.log('saving to db...');
+    console.log('\nsaving to db...');
     await sqlite.save(candles);
   }
 };

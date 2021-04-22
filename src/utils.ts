@@ -44,4 +44,12 @@ export const validateConfig = (config: Config): void => {
   if (!config.universe || config.universe.length === 0) {
     throw new Error('universe must have at least one pair');
   }
+
+  if (!config.stopLoss && !config.trailingStop) {
+    throw new Error('specify stoploss or trailing stop');
+  }
+
+  if ((config.stopLoss || config.trailingStop || 0) * config.leverage > 1) {
+    throw new Error('liquidation risk\ndecrease leverage and/or stoploss');
+  }
 };

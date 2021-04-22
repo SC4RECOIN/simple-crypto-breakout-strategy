@@ -22,10 +22,10 @@ class Binance extends Exchange {
     const end = moment().subtract(5, 'minutes');
 
     while (cursor < end) {
-      console.log(`Fetching ${cursor.format('YYYY-MM-DD')}...`);
+      process.stdout.write(`Fetching ${cursor.format('YYYY-MM-DD')}...\r`);
       const interval = await this.client.candles({
         symbol,
-        interval: CandleChartInterval.FIVE_MINUTES,
+        interval: CandleChartInterval.ONE_MINUTE,
         startTime: cursor.valueOf(),
         limit: 1000,
       });
