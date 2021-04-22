@@ -25,4 +25,10 @@ export const config: Config = {
 
   // trading pair to set targets for
   pair: 'ETHUSDT',
+
+  // simulated slippage on market orders
+  slippage: 0.0004,
+
+  // trading fee
+  fee: 0.0007,
 };

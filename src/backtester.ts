@@ -15,6 +15,7 @@ class BackTester {
   tStop: number | null;
   alwaysLong: boolean;
   pair: string;
+  impact: number;
 
   // portfolio
   balance: number;
@@ -44,6 +45,7 @@ class BackTester {
     this.tStop = config.trailingStop;
     this.alwaysLong = config.alwaysLong;
     this.pair = config.pair;
+    this.impact = config.fee + config.slippage;
 
     this.tradeCount = 0;
     this.hwm = Number.NEGATIVE_INFINITY;
@@ -80,10 +82,13 @@ class BackTester {
   closePositions(price: number) {
     // sell if open position
     if (this.holding) {
-      const posReturn = this.currentPositionReturn(price) * this.balance;
+      let posReturn = this.currentPositionReturn(price);
+
+      // fees & slippage on entry and exit
+      posReturn -= this.impact * 2;
 
       // simulate leverage
-      this.balance += posReturn * this.leverage;
+      this.balance += posReturn * this.balance * this.leverage;
       this.holding = false;
     }
   }

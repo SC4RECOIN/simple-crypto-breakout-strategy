@@ -6,4 +6,6 @@ export interface Config {
   trailingStop: number | null;
   alwaysLong: boolean;
   pair: string;
+  fee: number;
+  slippage: number;
 }
