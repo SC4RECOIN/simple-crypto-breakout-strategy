@@ -4,6 +4,7 @@ import {Candle} from './entity/candle';
 import {Config} from './entity/types';
 import SQLiteDB from './sqlite';
 import {maxDrawdown, validateConfig} from './utils';
+import fs from 'fs';
 
 class BackTester {
   // config
@@ -208,6 +209,13 @@ class BackTester {
         this.reportTrade(candle);
       }
     }
+
+    // write balances to file
+    let csv = 'index,balance\n';
+    this.balanceHist.map((bal, idx) => (csv += `${idx},${bal}\n`));
+    fs.writeFile('balances.csv', csv, (err: unknown) => {
+      if (err) throw err;
+    });
 
     this.printStats();
 

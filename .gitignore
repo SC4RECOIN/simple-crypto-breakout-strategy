@@ -4,3 +4,4 @@ historical
 .DS_Store
 *.sqlite
 *.sqlite-journal
+*.csv
