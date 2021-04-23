@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"os"
+
+	"github.com/go-numb/go-ftx/rest/private/account"
 )
 
 type Configuration struct {
@@ -27,4 +29,13 @@ func (config *Configuration) LoadConfig() error {
 	}
 
 	return json.Unmarshal(byteValue, config)
+}
+
+type AccountInfo struct {
+	Collateral        float64            `json:"collateral"`
+	FreeCollateral    float64            `json:"freeCollateral"`
+	TotalAccountValue float64            `json:"totalAccountValue"`
+	TotalPositionSize float64            `json:"totalPositionSize"`
+	Leverage          float64            `json:"leverage"`
+	Positions         []account.Position `json:"positions"`
 }
