@@ -5,3 +5,4 @@ historical
 *.sqlite
 *.sqlite-journal
 *.csv
+keys.ts
