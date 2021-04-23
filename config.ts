@@ -24,7 +24,7 @@ export const config: Config = {
   alwaysLong: true,
 
   // trading pair to set targets for
-  pair: 'ETHUSDT',
+  pair: 'BTCUSDT',
 
   // simulated slippage on market orders
   slippage: 0.0004,
