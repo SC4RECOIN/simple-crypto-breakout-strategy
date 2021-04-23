@@ -1,8 +1,2 @@
-node_modules
-build
-historical
 .DS_Store
-*.sqlite
-*.sqlite-journal
-*.csv
-keys.ts
+*.json
