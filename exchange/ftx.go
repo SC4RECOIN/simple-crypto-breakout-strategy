@@ -12,8 +12,9 @@ import (
 )
 
 type FTX struct {
-	config models.Configuration
-	client *rest.Client
+	config      models.Configuration
+	client      *rest.Client
+	unsubscribe context.CancelFunc
 
 	AccountInfo *models.AccountInfo
 	LastPrice   float64
@@ -48,11 +49,12 @@ func New(config models.Configuration) FTX {
 
 func (ftx *FTX) Subscribe() {
 	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ftx.unsubscribe = cancel
+	c := ftx.config
 
 	ch := make(chan realtime.Response)
-	go realtime.Connect(ctx, ch, []string{"trades"}, []string{ftx.config.Ticker}, nil)
-	go realtime.ConnectForPrivate(ctx, ch, ftx.config.Key, ftx.config.Secret, []string{"fills"}, nil)
+	go realtime.Connect(ctx, ch, []string{"trades"}, []string{c.Ticker}, nil)
+	go realtime.ConnectForPrivate(ctx, ch, c.Key, c.Secret, []string{"fills"}, nil, c.SubAccount)
 
 	for {
 		select {
@@ -71,6 +73,10 @@ func (ftx *FTX) Subscribe() {
 			}
 		}
 	}
+}
+
+func (ftx *FTX) UnSubscribe() {
+	ftx.unsubscribe()
 }
 
 func (ftx *FTX) UpdateAccountInfo() {

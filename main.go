@@ -16,4 +16,5 @@ func main() {
 
 	ftx := exchange.New(config)
 	fmt.Printf("%+v\n", ftx.AccountInfo)
+	ftx.Subscribe()
 }
