@@ -14,6 +14,7 @@ type Trader struct {
 	config    models.Configuration
 	exchange  exchange.FTX
 	lastClose time.Time
+	active    bool
 
 	target    *float64
 	lastPrice *float64
@@ -27,6 +28,7 @@ func StartTrader(config models.Configuration) {
 		config:    config,
 		exchange:  ftx,
 		lastClose: now.Truncate(24 * time.Hour),
+		active:    config.AutoStart,
 	}
 
 	trader.NewDay()
@@ -57,7 +59,13 @@ func (t *Trader) NewDay() {
 	tRange := (c.High - c.Low) * t.config.K
 	target := c.Close + tRange
 
+	if !t.active {
+		fmt.Println("trader not active; orders will not be placed")
+		return
+	}
+
 	fmt.Println("opening stop-market order for ", target)
+	t.exchange.PlaceTrigger(target)
 }
 
 func (t *Trader) GetPositions() []account.Position {

@@ -16,6 +16,7 @@ type Configuration struct {
 	K          float64 `json:"k"`
 	StopLoss   float64 `json:"stoploss"`
 	Leverage   int     `json:"leverage"`
+	AutoStart  bool    `json:"autostart"`
 }
 
 func (config *Configuration) LoadConfig() error {

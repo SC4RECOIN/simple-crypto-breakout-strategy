@@ -131,8 +131,8 @@ func (ftx *FTX) CloseAll() error {
 	return nil
 }
 
-// PlaceTrigger is used for stop-market and stop-loss orders
-func (ftx *FTX) PlaceTrigger(target float64, side models.Side, reduceOnly bool) error {
+// PlaceTrigger is used for placing orders for price target
+func (ftx *FTX) PlaceTrigger(target float64) error {
 	ftx.UpdateAccountInfo()
 
 	collateral := ftx.AccountInfo.FreeCollateral * float64(ftx.config.Leverage)
@@ -140,11 +140,10 @@ func (ftx *FTX) PlaceTrigger(target float64, side models.Side, reduceOnly bool) 
 
 	_, err := ftx.client.PlaceTriggerOrder(&orders.RequestForPlaceTriggerOrder{
 		Market:       ftx.config.Ticker,
-		Side:         string(side),
+		Side:         string(models.Buy),
 		Type:         "stop",
 		TriggerPrice: target,
 		Size:         size,
-		ReduceOnly:   reduceOnly,
 	})
 
 	if err != nil {
@@ -206,7 +205,16 @@ func (ftx *FTX) SetStoploss(fillPrice, fillSize float64) {
 		return
 	}
 
-	if err := ftx.PlaceTrigger(stopPrice, models.Sell, true); err != nil {
+	_, err := ftx.client.PlaceTriggerOrder(&orders.RequestForPlaceTriggerOrder{
+		Market:       ftx.config.Ticker,
+		Side:         string(models.Sell),
+		Type:         "stop",
+		TriggerPrice: stopPrice,
+		Size:         fillSize,
+		ReduceOnly:   true,
+	})
+
+	if err != nil {
 		fmt.Printf("failed to create stoploss for %.4f fill", fillSize)
 	}
 }
