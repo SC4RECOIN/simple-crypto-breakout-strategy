@@ -2,20 +2,24 @@ package exchange
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"time"
 
 	"github.com/SC4RECOIN/simple-crypto-breakout-strategy/models"
 	"github.com/go-numb/go-ftx/auth"
 	"github.com/go-numb/go-ftx/realtime"
 	"github.com/go-numb/go-ftx/rest"
 	"github.com/go-numb/go-ftx/rest/private/account"
+	"github.com/go-numb/go-ftx/rest/private/orders"
+	"github.com/go-numb/go-ftx/rest/public/markets"
 )
 
 type FTX struct {
 	config      models.Configuration
 	client      *rest.Client
 	unsubscribe context.CancelFunc
-	listener    func(price float64)
+	listener    func(price float64, ts time.Time)
 
 	AccountInfo *models.AccountInfo
 	LastPrice   *float64
@@ -38,8 +42,8 @@ func New(config models.Configuration) FTX {
 	client.Auth.UseSubAccountID(1)
 
 	// default listener
-	listener := func(price float64) {
-		fmt.Println("New trade:", price)
+	listener := func(price float64, ts time.Time) {
+		fmt.Println("New trade:", price, ts)
 	}
 
 	ftx := FTX{
@@ -70,7 +74,7 @@ func (ftx *FTX) Subscribe() {
 			case realtime.TRADES:
 				for _, trade := range v.Trades {
 					ftx.LastPrice = &trade.Price
-					ftx.listener(trade.Price)
+					ftx.listener(trade.Price, trade.Time)
 				}
 
 			case realtime.FILLS:
@@ -86,8 +90,33 @@ func (ftx *FTX) UnSubscribe() {
 	ftx.unsubscribe()
 }
 
-func (ftx *FTX) GetTrades(cb func(price float64)) {
+func (ftx *FTX) GetTrades(cb func(price float64, ts time.Time)) {
 	ftx.listener = cb
+}
+
+func (ftx *FTX) CloseAll() error {
+	_, err := ftx.client.CancelAll(&orders.RequestForCancelAll{})
+	if err != nil {
+		return errors.New("failed to cancel open orders")
+	}
+
+	ftx.UpdateAccountInfo()
+
+	for _, pos := range ftx.AccountInfo.Positions {
+		_, err := ftx.client.PlaceOrder(&orders.RequestForPlaceOrder{
+			Market:     pos.Future,
+			Side:       "sell",
+			Type:       "market",
+			Size:       pos.Size,
+			ReduceOnly: true,
+		})
+
+		if err != nil {
+			return fmt.Errorf("failed to close position: %+v", pos)
+		}
+	}
+
+	return nil
 }
 
 func (ftx *FTX) UpdateAccountInfo() {
@@ -105,4 +134,28 @@ func (ftx *FTX) UpdateAccountInfo() {
 		Leverage:          info.Leverage,
 		Positions:         info.Positions,
 	}
+}
+
+func (ftx *FTX) GetLastDay() (*markets.Candle, error) {
+	today := time.Now().UTC().Truncate(24 * time.Hour)
+	yesterday := today.Add(-24 * time.Hour).Unix()
+
+	candles, err := ftx.client.Candles(&markets.RequestForCandles{
+		ProductCode: ftx.config.Ticker,
+		Resolution:  86400,
+		Limit:       3,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	for _, candle := range *candles {
+		if candle.StartTime.Unix() == yesterday {
+			return &candle, nil
+		}
+	}
+
+	err = fmt.Errorf("Failed to get last day price: %v", yesterday)
+	return nil, err
 }

@@ -13,8 +13,8 @@ type Configuration struct {
 	Secret     string  `json:"secret"`
 	SubAccount string  `json:"subAccount"`
 	Ticker     string  `json:"ticker"`
-	K          float32 `json:"k"`
-	StopLoss   float32 `json:"stoploss"`
+	K          float64 `json:"k"`
+	StopLoss   float64 `json:"stoploss"`
 	Leverage   int     `json:"leverage"`
 }
 
