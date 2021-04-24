@@ -30,11 +30,11 @@ func StartTrader(config models.Configuration) {
 	}
 
 	trader.NewDay()
-	ftx.GetTrades(trader.PrintTrades)
+	ftx.GetTrades(trader.NewTrade)
 	ftx.Subscribe()
 }
 
-func (t *Trader) PrintTrades(price float64, ts time.Time) {
+func (t *Trader) NewTrade(price float64, ts time.Time) {
 	timeDelta := ts.Sub(t.lastClose)
 	t.lastPrice = &price
 
