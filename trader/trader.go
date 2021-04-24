@@ -79,6 +79,13 @@ func (t *Trader) GetAccountInfo() *models.AccountInfo {
 }
 
 func (t *Trader) GetOpenOrders() (*orders.ResponseForOpenOrder, error) {
-	return nil, errors.New("test error")
-	// return t.exchange.GetOpenOrders()
+	return t.exchange.GetOpenOrders()
+}
+
+func (t *Trader) LastPrice() (float64, error) {
+	if t.lastPrice != nil {
+		return *t.lastPrice, nil
+	}
+
+	return 0, errors.New("last price not available")
 }
