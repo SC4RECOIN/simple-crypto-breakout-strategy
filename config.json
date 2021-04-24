@@ -1,0 +1,10 @@
+{
+  "key": "",
+  "secret": "",
+  "subAccount": "BreakoutTrader",
+  "ticker": "ETH-PERP",
+  "k": 0.6,
+  "stoploss": 0.02,
+  "leverage": 6,
+  "autostart": false
+}
