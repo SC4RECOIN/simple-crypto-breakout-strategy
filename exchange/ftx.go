@@ -54,17 +54,8 @@ func New(config models.Configuration) FTX {
 
 	// fetch account info
 	ftx.UpdateAccountInfo()
-	fmt.Println("account loaded")
 	fmt.Printf("total position size: $%.2f\n", ftx.AccountInfo.TotalPositionSize)
-	fmt.Printf("total account value: $%.2f\n", ftx.AccountInfo.TotalAccountValue)
-	fmt.Printf("free collateral:     $%.2f\n", ftx.AccountInfo.FreeCollateral)
-
-	// update leverage if not correct
-	if ftx.AccountInfo.Leverage != float64(config.Leverage) {
-		client.Leverage(&account.RequestForLeverage{
-			Leverage: config.Leverage,
-		})
-	}
+	fmt.Printf("total account value: $%.2f\n\n", ftx.AccountInfo.TotalAccountValue)
 
 	return ftx
 }
@@ -131,12 +122,17 @@ func (ftx *FTX) CloseAll() error {
 }
 
 func (ftx *FTX) PlaceTrigger(target float64) error {
+	ftx.UpdateAccountInfo()
+
+	collateral := ftx.AccountInfo.FreeCollateral * float64(ftx.config.Leverage)
+	size := target / collateral
+
 	_, err := ftx.client.PlaceTriggerOrder(&orders.RequestForPlaceTriggerOrder{
 		Market:       ftx.config.Ticker,
 		Side:         "buy",
 		Type:         "stop",
 		TriggerPrice: target,
-		Size:         0,
+		Size:         size,
 	})
 
 	if err != nil {
