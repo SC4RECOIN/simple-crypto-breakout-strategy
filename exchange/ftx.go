@@ -136,7 +136,7 @@ func (ftx *FTX) PlaceTrigger(target float64) error {
 	ftx.UpdateAccountInfo()
 
 	collateral := ftx.AccountInfo.FreeCollateral * float64(ftx.config.Leverage)
-	size := target / collateral
+	size := collateral / target
 
 	_, err := ftx.client.PlaceTriggerOrder(&orders.RequestForPlaceTriggerOrder{
 		Market:       ftx.config.Ticker,
@@ -219,6 +219,6 @@ func (ftx *FTX) SetStoploss(fillPrice, fillSize float64) {
 	}
 }
 
-func (ftx *FTX) GetOpenOrders() (*orders.ResponseForOpenOrder, error) {
-	return ftx.client.OpenOrder(&orders.RequestForOpenOrder{})
+func (ftx *FTX) GetOpenOrders() (*orders.ResponseForOpenTriggerOrders, error) {
+	return ftx.client.OpenTriggerOrders(&orders.RequestForOpenTriggerOrders{})
 }

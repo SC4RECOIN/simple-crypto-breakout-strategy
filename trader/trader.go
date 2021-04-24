@@ -78,7 +78,7 @@ func (t *Trader) GetAccountInfo() *models.AccountInfo {
 	return t.exchange.AccountInfo
 }
 
-func (t *Trader) GetOpenOrders() (*orders.ResponseForOpenOrder, error) {
+func (t *Trader) GetOpenOrders() (*orders.ResponseForOpenTriggerOrders, error) {
 	return t.exchange.GetOpenOrders()
 }
 
