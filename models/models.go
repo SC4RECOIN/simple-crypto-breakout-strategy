@@ -9,10 +9,13 @@ import (
 )
 
 type Configuration struct {
-	Key        string `json:"key"`
-	Secret     string `json:"secret"`
-	SubAccount string `json:"subAccount"`
-	Ticker     string `json:"ticker"`
+	Key        string  `json:"key"`
+	Secret     string  `json:"secret"`
+	SubAccount string  `json:"subAccount"`
+	Ticker     string  `json:"ticker"`
+	K          float32 `json:"k"`
+	StopLoss   float32 `json:"stoploss"`
+	Leverage   int     `json:"leverage"`
 }
 
 func (config *Configuration) LoadConfig() error {
@@ -28,7 +31,21 @@ func (config *Configuration) LoadConfig() error {
 		return err
 	}
 
-	return json.Unmarshal(byteValue, config)
+	err = json.Unmarshal(byteValue, config)
+	if err != nil {
+		return err
+	}
+
+	// Only override if key is not set
+	if key := os.Getenv("FTX_KEY"); key != "" && config.Key == "" {
+		config.Key = key
+	}
+
+	if secret := os.Getenv("FTX_SECRET"); secret != "" && config.Secret == "" {
+		config.Secret = secret
+	}
+
+	return nil
 }
 
 type AccountInfo struct {

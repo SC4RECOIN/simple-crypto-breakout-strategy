@@ -15,9 +15,10 @@ type FTX struct {
 	config      models.Configuration
 	client      *rest.Client
 	unsubscribe context.CancelFunc
+	listener    func(price float64)
 
 	AccountInfo *models.AccountInfo
-	LastPrice   float64
+	LastPrice   *float64
 }
 
 func New(config models.Configuration) FTX {
@@ -36,9 +37,15 @@ func New(config models.Configuration) FTX {
 	// use sub-account
 	client.Auth.UseSubAccountID(1)
 
+	// default listener
+	listener := func(price float64) {
+		fmt.Println("New trade:", price)
+	}
+
 	ftx := FTX{
-		config: config,
-		client: client,
+		config:   config,
+		client:   client,
+		listener: listener,
 	}
 
 	// fetch account info
@@ -62,8 +69,8 @@ func (ftx *FTX) Subscribe() {
 			switch v.Type {
 			case realtime.TRADES:
 				for _, trade := range v.Trades {
-					fmt.Println("New trade: ", trade.Price)
-					ftx.LastPrice = trade.Price
+					ftx.LastPrice = &trade.Price
+					ftx.listener(trade.Price)
 				}
 
 			case realtime.FILLS:
@@ -77,6 +84,10 @@ func (ftx *FTX) Subscribe() {
 
 func (ftx *FTX) UnSubscribe() {
 	ftx.unsubscribe()
+}
+
+func (ftx *FTX) GetTrades(cb func(price float64)) {
+	ftx.listener = cb
 }
 
 func (ftx *FTX) UpdateAccountInfo() {

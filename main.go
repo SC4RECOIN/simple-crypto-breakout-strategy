@@ -3,10 +3,15 @@ package main
 import (
 	"fmt"
 
-	"github.com/SC4RECOIN/simple-crypto-breakout-strategy/exchange"
 	"github.com/SC4RECOIN/simple-crypto-breakout-strategy/models"
+	"github.com/SC4RECOIN/simple-crypto-breakout-strategy/trader"
 	"github.com/labstack/gommon/log"
 )
+
+// let to goroutine run indefinetly
+func blockForever() {
+	select {}
+}
 
 func main() {
 	config := models.Configuration{}
@@ -14,7 +19,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	ftx := exchange.New(config)
-	fmt.Printf("%+v\n", ftx.AccountInfo)
-	ftx.Subscribe()
+	trader := trader.New(config)
+	fmt.Println("Positions: ", trader.GetPositions())
+	blockForever()
 }
