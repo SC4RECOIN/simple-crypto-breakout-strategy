@@ -218,3 +218,7 @@ func (ftx *FTX) SetStoploss(fillPrice, fillSize float64) {
 		fmt.Printf("failed to create stoploss for %.4f fill", fillSize)
 	}
 }
+
+func (ftx *FTX) GetOpenOrders() (*orders.ResponseForOpenOrder, error) {
+	return ftx.client.OpenOrder(&orders.RequestForOpenOrder{})
+}

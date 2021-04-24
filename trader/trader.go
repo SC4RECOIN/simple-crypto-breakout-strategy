@@ -1,13 +1,14 @@
 package trader
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/SC4RECOIN/simple-crypto-breakout-strategy/exchange"
 	"github.com/SC4RECOIN/simple-crypto-breakout-strategy/models"
-	"github.com/go-numb/go-ftx/rest/private/account"
+	"github.com/go-numb/go-ftx/rest/private/orders"
 )
 
 type Trader struct {
@@ -20,7 +21,7 @@ type Trader struct {
 	lastPrice *float64
 }
 
-func StartTrader(config models.Configuration) {
+func StartTrader(config models.Configuration) *Trader {
 	ftx := exchange.New(config)
 	now := time.Now().UTC()
 
@@ -33,7 +34,9 @@ func StartTrader(config models.Configuration) {
 
 	trader.NewDay()
 	ftx.GetTrades(trader.NewTrade)
-	ftx.Subscribe()
+	go ftx.Subscribe()
+
+	return &trader
 }
 
 func (t *Trader) NewTrade(price float64, ts time.Time) {
@@ -70,6 +73,12 @@ func (t *Trader) NewDay() {
 	}
 }
 
-func (t *Trader) GetPositions() []account.Position {
-	return t.exchange.AccountInfo.Positions
+func (t *Trader) GetAccountInfo() *models.AccountInfo {
+	t.exchange.UpdateAccountInfo()
+	return t.exchange.AccountInfo
+}
+
+func (t *Trader) GetOpenOrders() (*orders.ResponseForOpenOrder, error) {
+	return nil, errors.New("test error")
+	// return t.exchange.GetOpenOrders()
 }
