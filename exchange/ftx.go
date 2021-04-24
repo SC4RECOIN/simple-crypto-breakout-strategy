@@ -147,7 +147,7 @@ func (ftx *FTX) PlaceTrigger(target float64) error {
 	})
 
 	if err != nil {
-		return fmt.Errorf("failed to create trigger order for: %f", target)
+		return fmt.Errorf("failed to create trigger order for: $%.2f\t%v", target, err)
 	}
 
 	return nil

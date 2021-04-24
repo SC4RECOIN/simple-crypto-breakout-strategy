@@ -64,8 +64,10 @@ func (t *Trader) NewDay() {
 		return
 	}
 
-	fmt.Println("opening stop-market order for ", target)
-	t.exchange.PlaceTrigger(target)
+	fmt.Printf("opening stop-market order for $%.2f\n", target)
+	if err = t.exchange.PlaceTrigger(target); err != nil {
+		fmt.Println("error placing order:", err.Error())
+	}
 }
 
 func (t *Trader) GetPositions() []account.Position {
