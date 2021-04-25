@@ -1,8 +1,8 @@
 import React from "react";
 import { SimpleGrid, Box, Text, useToast, Flex } from "@chakra-ui/react";
 import { useQuery } from "react-query";
-import { getAccountInfo, getOpenOrders } from "./api/api";
-import { AccountData, OpenOrder, Position } from "./api/types";
+import { getAccountInfo, getOpenOrders } from "../api/api";
+import { AccountData, OpenOrder, Position } from "../api/types";
 import { useCardColor } from "./ColorModeSwitcher";
 import { isMobile } from "react-device-detect";
 

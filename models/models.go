@@ -88,4 +88,5 @@ type Target struct {
 	Last   float64 `json:"last"`
 	Target float64 `json:"target"`
 	Open   float64 `json:"open"`
+	Ticker string  `json:"ticker"`
 }

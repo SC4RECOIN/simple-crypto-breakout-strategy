@@ -8,8 +8,8 @@ import {
   StatHelpText,
 } from "@chakra-ui/react";
 import numeral from "numeral";
-import { getAccountInfo, getBuyTarget } from "./api/api";
-import { AccountData } from "./api/types";
+import { getAccountInfo, getBuyTarget } from "../api/api";
+import { AccountData } from "../api/types";
 import { useQuery } from "react-query";
 import { isMobile } from "react-device-detect";
 
@@ -55,7 +55,7 @@ const Stats = () => {
       <Stat>
         <StatLabel>Today</StatLabel>
         <StatNumber fontSize="3xl">{numeral(chg).format("+0.00 %")}</StatNumber>
-        <StatHelpText>ETH-PERP</StatHelpText>
+        <StatHelpText>{t?.ticker}</StatHelpText>
       </Stat>
       <Stat>
         <StatLabel>Account Value</StatLabel>

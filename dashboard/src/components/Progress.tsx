@@ -1,6 +1,6 @@
 import React from "react";
 import { Progress, Box, Text, HStack } from "@chakra-ui/react";
-import { getBuyTarget } from "./api/api";
+import { getBuyTarget } from "../api/api";
 import { useQuery } from "react-query";
 import numeral from "numeral";
 

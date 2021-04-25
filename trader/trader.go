@@ -110,5 +110,6 @@ func (t *Trader) GetTarget() *models.Target {
 		Last:   *t.lastPrice,
 		Target: *t.target,
 		Open:   *t.open,
+		Ticker: t.config.Ticker,
 	}
 }

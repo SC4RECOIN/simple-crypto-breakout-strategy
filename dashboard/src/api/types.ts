@@ -2,6 +2,7 @@ export interface Target {
   last: number;
   target: number;
   open: number;
+  ticker: string;
 }
 
 export interface AccountData {

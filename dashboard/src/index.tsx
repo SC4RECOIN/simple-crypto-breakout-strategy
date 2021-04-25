@@ -1,12 +1,12 @@
 import * as React from "react";
 import ReactDOM from "react-dom";
 import { ColorModeScript, ChakraProvider, Box, theme } from "@chakra-ui/react";
-import { ColorModeSwitcher } from "./ColorModeSwitcher";
-import TargetProgress from "./Progress";
+import { ColorModeSwitcher } from "./components/ColorModeSwitcher";
+import TargetProgress from "./components/Progress";
 import { QueryClient, QueryClientProvider } from "react-query";
-import Positions from "./Positions";
-import Stats from "./Stats";
+import Positions from "./components/Positions";
 import { isMobile } from "react-device-detect";
+import Stats from "./components/Stats";
 
 const queryClient = new QueryClient({
   defaultOptions: {
