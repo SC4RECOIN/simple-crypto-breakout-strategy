@@ -39,3 +39,7 @@ export interface OpenOrder {
   filledSize: number;
   id: number;
 }
+
+export interface ActiveResponse {
+  active: boolean;
+}

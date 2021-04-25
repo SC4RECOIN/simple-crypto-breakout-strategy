@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from "react-query";
 import Positions from "./components/Positions";
 import { isMobile } from "react-device-detect";
 import Stats from "./components/Stats";
+import SafetySwitches from "./components/Safety";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -23,6 +24,7 @@ ReactDOM.render(
       <ChakraProvider theme={theme}>
         <ColorModeSwitcher />
         <Box p={isMobile ? "2rem" : "6rem"}>
+          <SafetySwitches />
           <Stats />
           <TargetProgress />
           <Positions />
