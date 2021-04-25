@@ -113,3 +113,15 @@ func (t *Trader) GetTarget() *models.Target {
 		Ticker: t.config.Ticker,
 	}
 }
+
+func (t *Trader) IsActive() bool {
+	return t.active
+}
+
+func (t *Trader) SetActive(value bool) {
+	t.active = value
+}
+
+func (t *Trader) CloseAll() error {
+	return t.exchange.CloseAll()
+}

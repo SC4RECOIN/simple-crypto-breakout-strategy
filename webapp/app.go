@@ -24,8 +24,21 @@ func start() {
 	app = fiber.New()
 	app.Use(cors.New())
 
-	app.Get("/heartbeat", func(c *fiber.Ctx) error {
-		return c.JSON(map[string]string{"message": "active"})
+	app.Get("/active", func(c *fiber.Ctx) error {
+		return c.JSON(&fiber.Map{"active": t.IsActive()})
+	})
+
+	app.Post("/active", func(c *fiber.Ctx) error {
+		req := SetActiveRequest{}
+		if err := c.BodyParser(&req); err != nil {
+			return c.Status(400).JSON(&fiber.Map{
+				"success": false,
+				"error":   err,
+			})
+		}
+
+		t.SetActive(req.Active)
+		return c.JSON(&fiber.Map{"active": req.Active})
 	})
 
 	app.Get("/account-info", func(c *fiber.Ctx) error {
@@ -49,11 +62,20 @@ func start() {
 			return c.JSON(errMsg(err))
 		}
 
-		return c.JSON(map[string]float64{"price": price})
+		return c.JSON(&fiber.Map{"price": price})
 	})
 
 	app.Get("/target", func(c *fiber.Ctx) error {
 		return c.JSON(t.GetTarget())
+	})
+
+	app.Post("/close-all", func(c *fiber.Ctx) error {
+		if err := t.CloseAll(); err != nil {
+			c.Status(500)
+			return c.JSON(errMsg(err))
+		}
+
+		return c.JSON(&fiber.Map{"message": "all orders and positions closed"})
 	})
 
 	if err := app.Listen(":4000"); err != nil {
