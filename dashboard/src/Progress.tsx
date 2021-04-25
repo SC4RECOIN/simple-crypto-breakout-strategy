@@ -35,7 +35,7 @@ const TargetProgress = () => {
   }
 
   return (
-    <Box>
+    <Box w="100%">
       <Stat mb="3rem">
         <StatLabel>Current Price</StatLabel>
         <StatNumber>${numeral(t?.last).format("0.00")}</StatNumber>
@@ -47,7 +47,11 @@ const TargetProgress = () => {
         <Text>Distance to Target</Text>
         <Text opacity="50%">- {numeral(progress).format("0 %")}</Text>
       </HStack>
-      <Progress size="lg" value={progress * 100} />
+      <Progress
+        colorScheme={progress > 1 ? "green" : "blue"}
+        size="lg"
+        value={progress * 100}
+      />
     </Box>
   );
 };

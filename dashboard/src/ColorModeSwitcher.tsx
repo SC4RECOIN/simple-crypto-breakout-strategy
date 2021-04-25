@@ -19,3 +19,7 @@ export const ColorModeSwitcher = () => {
     />
   );
 };
+
+export const useCardColor = () => {
+  return useColorModeValue("rgba(0, 0, 0, 0.05)", "rgba(255, 255, 255, 0.05)");
+};
