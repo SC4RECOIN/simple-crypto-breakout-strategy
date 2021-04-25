@@ -43,3 +43,7 @@ export interface OpenOrder {
 export interface ActiveResponse {
   active: boolean;
 }
+
+export interface CloseAllResponse {
+  message: string;
+}

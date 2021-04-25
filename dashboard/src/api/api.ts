@@ -1,5 +1,11 @@
 import axios from "axios";
-import { AccountData, ActiveResponse, OpenOrder, Target } from "./types";
+import {
+  AccountData,
+  ActiveResponse,
+  CloseAllResponse,
+  OpenOrder,
+  Target,
+} from "./types";
 
 const instance = axios.create({ baseURL: "http://localhost:4000" });
 
@@ -20,5 +26,15 @@ export const getOpenOrders = async (): Promise<OpenOrder[]> => {
 
 export const isActive = async (): Promise<ActiveResponse> => {
   const res = await instance.get<ActiveResponse>("/active");
+  return res.data;
+};
+
+export const setIsActive = async (active: boolean): Promise<ActiveResponse> => {
+  const res = await instance.post<ActiveResponse>("/active", { active });
+  return res.data;
+};
+
+export const closeAll = async (): Promise<CloseAllResponse> => {
+  const res = await instance.post<CloseAllResponse>("/close-all");
   return res.data;
 };
