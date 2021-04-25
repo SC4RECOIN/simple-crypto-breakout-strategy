@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Button, HStack, Tooltip, useToast } from "@chakra-ui/react";
 import { isActive, setIsActive, closeAll } from "../api/api";
+import { isMobile } from "react-device-detect";
 
 const SafetySwitches = () => {
   const [active, setActive] = useState(false);
@@ -48,7 +49,7 @@ const SafetySwitches = () => {
   };
 
   return (
-    <HStack mb="4rem" mt="-2rem">
+    <HStack mb="4rem" mt={isMobile ? "2rem" : "-2rem"}>
       <Button
         size="lg"
         mr="1rem"
