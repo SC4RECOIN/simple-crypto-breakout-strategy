@@ -2,6 +2,7 @@ package models
 
 import (
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"os"
 
@@ -46,6 +47,31 @@ func (config *Configuration) LoadConfig() error {
 		config.Secret = secret
 	}
 
+	return config.Validate()
+}
+
+func (config *Configuration) Validate() error {
+	if config.Key == "" || config.Secret == "" {
+		msg := "config key and secret cannot be empty"
+		return errors.New(msg)
+	}
+
+	if config.Ticker == "" {
+		return errors.New("ticker cannot be empty")
+	}
+
+	if config.K <= 0 {
+		return errors.New("k must be greater than 0")
+	}
+
+	if config.Leverage < 1 {
+		return errors.New("leverage must be 1 or greater")
+	}
+
+	if config.StopLoss*float64(config.Leverage) > 0.4 {
+		return errors.New("config too risky; reduce stoploss or leverage")
+	}
+
 	return nil
 }
 
@@ -56,4 +82,11 @@ type AccountInfo struct {
 	TotalPositionSize float64            `json:"totalPositionSize"`
 	Leverage          float64            `json:"leverage"`
 	Positions         []account.Position `json:"positions"`
+}
+
+type Target struct {
+	Last   float64 `json:"last"`
+	Target float64 `json:"target"`
+	Open   float64 `json:"open"`
+	Ticker string  `json:"ticker"`
 }

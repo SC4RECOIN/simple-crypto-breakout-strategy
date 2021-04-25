@@ -136,7 +136,7 @@ func (ftx *FTX) PlaceTrigger(target float64) error {
 	ftx.UpdateAccountInfo()
 
 	collateral := ftx.AccountInfo.FreeCollateral * float64(ftx.config.Leverage)
-	size := target / collateral
+	size := collateral / target
 
 	_, err := ftx.client.PlaceTriggerOrder(&orders.RequestForPlaceTriggerOrder{
 		Market:       ftx.config.Ticker,
@@ -217,4 +217,21 @@ func (ftx *FTX) SetStoploss(fillPrice, fillSize float64) {
 	if err != nil {
 		fmt.Printf("failed to create stoploss for %.4f fill", fillSize)
 	}
+}
+
+func (ftx *FTX) GetMarket() (*markets.Market, error) {
+	resp, err := ftx.client.Markets(&markets.RequestForMarkets{
+		ProductCode: ftx.config.Ticker,
+	})
+
+	if err != nil || len(*resp) == 0 {
+		return nil, fmt.Errorf("failed to get snapshot for %s", ftx.config.Ticker)
+	}
+
+	markets := *resp
+	return &markets[0], nil
+}
+
+func (ftx *FTX) GetOpenOrders() (*orders.ResponseForOpenTriggerOrders, error) {
+	return ftx.client.OpenTriggerOrders(&orders.RequestForOpenTriggerOrders{})
 }

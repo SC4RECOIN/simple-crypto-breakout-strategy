@@ -1,13 +1,14 @@
 package trader
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/SC4RECOIN/simple-crypto-breakout-strategy/exchange"
 	"github.com/SC4RECOIN/simple-crypto-breakout-strategy/models"
-	"github.com/go-numb/go-ftx/rest/private/account"
+	"github.com/go-numb/go-ftx/rest/private/orders"
 )
 
 type Trader struct {
@@ -16,11 +17,12 @@ type Trader struct {
 	lastClose time.Time
 	active    bool
 
+	open      *float64
 	target    *float64
 	lastPrice *float64
 }
 
-func StartTrader(config models.Configuration) {
+func StartTrader(config models.Configuration) *Trader {
 	ftx := exchange.New(config)
 	now := time.Now().UTC()
 
@@ -33,7 +35,9 @@ func StartTrader(config models.Configuration) {
 
 	trader.NewDay()
 	ftx.GetTrades(trader.NewTrade)
-	ftx.Subscribe()
+	go ftx.Subscribe()
+
+	return &trader
 }
 
 func (t *Trader) NewTrade(price float64, ts time.Time) {
@@ -58,9 +62,23 @@ func (t *Trader) NewDay() {
 
 	tRange := (c.High - c.Low) * t.config.K
 	target := c.Close + tRange
+	t.target = &target
+	t.open = &c.Close
 
 	if !t.active {
-		fmt.Println("trader not active; orders will not be placed")
+		fmt.Println("trader not active; order will not be placed")
+		return
+	}
+
+	snapshot, err := t.exchange.GetMarket()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("target: $%.2f\tcurrent ask: $%.2f\n", target, snapshot.Ask)
+
+	if snapshot.Ask > target {
+		fmt.Println("current price is above target; order will not be placed")
 		return
 	}
 
@@ -70,6 +88,40 @@ func (t *Trader) NewDay() {
 	}
 }
 
-func (t *Trader) GetPositions() []account.Position {
-	return t.exchange.AccountInfo.Positions
+func (t *Trader) GetAccountInfo() *models.AccountInfo {
+	t.exchange.UpdateAccountInfo()
+	return t.exchange.AccountInfo
+}
+
+func (t *Trader) GetOpenOrders() (*orders.ResponseForOpenTriggerOrders, error) {
+	return t.exchange.GetOpenOrders()
+}
+
+func (t *Trader) LastPrice() (float64, error) {
+	if t.lastPrice != nil {
+		return *t.lastPrice, nil
+	}
+
+	return 0, errors.New("last price not available")
+}
+
+func (t *Trader) GetTarget() *models.Target {
+	return &models.Target{
+		Last:   *t.lastPrice,
+		Target: *t.target,
+		Open:   *t.open,
+		Ticker: t.config.Ticker,
+	}
+}
+
+func (t *Trader) IsActive() bool {
+	return t.active
+}
+
+func (t *Trader) SetActive(value bool) {
+	t.active = value
+}
+
+func (t *Trader) CloseAll() error {
+	return t.exchange.CloseAll()
 }
