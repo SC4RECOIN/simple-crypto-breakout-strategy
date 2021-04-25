@@ -1,5 +1,5 @@
 import axios from "axios";
-import { AccountInfo, OpenOrder, Target } from "./types";
+import { AccountData, OpenOrder, Target } from "./types";
 
 const instance = axios.create({ baseURL: "http://localhost:4000" });
 
@@ -8,8 +8,8 @@ export const getBuyTarget = async (): Promise<Target> => {
   return res.data;
 };
 
-export const getAccountInfo = async (): Promise<AccountInfo> => {
-  const res = await instance.get<AccountInfo>("/account-info");
+export const getAccountInfo = async (): Promise<AccountData> => {
+  const res = await instance.get<AccountData>("/account-info");
   return res.data;
 };
 

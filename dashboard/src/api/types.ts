@@ -4,7 +4,7 @@ export interface Target {
   open: number;
 }
 
-export interface AccountInfo {
+export interface AccountData {
   collateral: number;
   freeCollateral: number;
   totalAccountValue: number;

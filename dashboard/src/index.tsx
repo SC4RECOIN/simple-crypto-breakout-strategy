@@ -5,6 +5,7 @@ import { ColorModeSwitcher } from "./ColorModeSwitcher";
 import TargetProgress from "./Progress";
 import { QueryClient, QueryClientProvider } from "react-query";
 import AccountInfo from "./AccountInfo";
+import Stats from "./Stats";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -21,6 +22,7 @@ ReactDOM.render(
       <ChakraProvider theme={theme}>
         <ColorModeSwitcher />
         <Box p="6rem">
+          <Stats />
           <TargetProgress />
           <AccountInfo />
         </Box>
