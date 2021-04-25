@@ -10,11 +10,12 @@ RUN npm run build
 FROM golang:1.14 AS go-builder
 WORKDIR /app
 COPY . .
+ENV CGO_ENABLED=0
 RUN go build main.go
 
 
 # Copy files from builders
-FROM golang:1.14
+FROM golang:1.14-alpine
 
 WORKDIR /app
 COPY --from=react-builder /app/build ./dashboard/build
