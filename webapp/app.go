@@ -6,6 +6,7 @@ import (
 
 	"github.com/SC4RECOIN/simple-crypto-breakout-strategy/trader"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 )
 
 var (
@@ -21,6 +22,7 @@ func Start(ftxTrader *trader.Trader) {
 
 func start() {
 	app = fiber.New()
+	app.Use(cors.New())
 
 	app.Get("/heartbeat", func(c *fiber.Ctx) error {
 		return c.JSON(map[string]string{"message": "active"})
@@ -48,6 +50,10 @@ func start() {
 		}
 
 		return c.JSON(map[string]float64{"price": price})
+	})
+
+	app.Get("/target", func(c *fiber.Ctx) error {
+		return c.JSON(t.GetTarget())
 	})
 
 	if err := app.Listen(":4000"); err != nil {

@@ -57,3 +57,9 @@ type AccountInfo struct {
 	Leverage          float64            `json:"leverage"`
 	Positions         []account.Position `json:"positions"`
 }
+
+type Target struct {
+	Last   float64 `json:"last"`
+	Target float64 `json:"target"`
+	Open   float64 `json:"open"`
+}

@@ -17,6 +17,7 @@ type Trader struct {
 	lastClose time.Time
 	active    bool
 
+	open      *float64
 	target    *float64
 	lastPrice *float64
 }
@@ -61,6 +62,8 @@ func (t *Trader) NewDay() {
 
 	tRange := (c.High - c.Low) * t.config.K
 	target := c.Close + tRange
+	t.target = &target
+	t.open = &c.Close
 
 	if !t.active {
 		fmt.Println("trader not active; orders will not be placed")
@@ -88,4 +91,12 @@ func (t *Trader) LastPrice() (float64, error) {
 	}
 
 	return 0, errors.New("last price not available")
+}
+
+func (t *Trader) GetTarget() *models.Target {
+	return &models.Target{
+		Last:   *t.lastPrice,
+		Target: *t.target,
+		Open:   *t.open,
+	}
 }
