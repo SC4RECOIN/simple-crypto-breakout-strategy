@@ -78,6 +78,9 @@ func start() {
 		return c.JSON(&fiber.Map{"message": "all orders and positions closed"})
 	})
 
+	// React dashboard
+	app.Static("/", "./dashboard/build")
+
 	if err := app.Listen(":4000"); err != nil {
 		fmt.Println("failled to start web app:", err)
 	}
