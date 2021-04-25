@@ -1,9 +1,19 @@
 import React from "react";
-import { SimpleGrid, Box, Text, useToast, Flex } from "@chakra-ui/react";
+import {
+  SimpleGrid,
+  Box,
+  Text,
+  useToast,
+  Flex,
+  Stat,
+  StatLabel,
+  StatNumber,
+} from "@chakra-ui/react";
 import { useQuery } from "react-query";
 import { getAccountInfo, getOpenOrders } from "./api/api";
 import { OpenOrder, Position } from "./api/types";
 import { useCardColor } from "./ColorModeSwitcher";
+import numeral from "numeral";
 
 const Row = (props: { label: string; value: string | number }) => (
   <Flex>
@@ -45,9 +55,10 @@ const OrderBox = (props: OpenOrder) => {
 const AccountInfo = () => {
   const accountQuery = useQuery("account-info", getAccountInfo);
   const ordersQuery = useQuery("orders", getOpenOrders);
+  const act = accountQuery.data || ({} as any);
   const toast = useToast();
 
-  const positions = accountQuery.data?.positions || [];
+  const positions = act.positions || [];
   const orders = ordersQuery.data || [];
 
   if (accountQuery.isError) {
@@ -67,20 +78,34 @@ const AccountInfo = () => {
   }
 
   return (
-    <SimpleGrid columns={2} spacing={10} mt="4rem">
-      <Text fontSize="2xl">Open Orders</Text>
-      <Text fontSize="2xl">Positions</Text>
-      <Box>
-        {orders.map((o) => (
-          <OrderBox key={o.id} {...o} />
-        ))}
-      </Box>
-      <Box>
-        {positions.map((p, idx) => (
-          <PositionBox key={idx} {...p} />
-        ))}
-      </Box>
-    </SimpleGrid>
+    <>
+      <Stat mt="4rem">
+        <StatLabel>Account Value</StatLabel>
+        <StatNumber fontSize="4xl">
+          {numeral(act.totalAccountValue).format("$0,00")}
+        </StatNumber>
+      </Stat>
+      <Stat mt="2rem">
+        <StatLabel>Total Position Size</StatLabel>
+        <StatNumber fontSize="4xl">
+          {numeral(act.totalPositionSize).format("$0,00")}
+        </StatNumber>
+      </Stat>
+      <SimpleGrid columns={2} spacing={10} mt="4rem">
+        <Text fontSize="2xl">Open Orders</Text>
+        <Text fontSize="2xl">Positions</Text>
+        <Box>
+          {orders.map((o) => (
+            <OrderBox key={o.id} {...o} />
+          ))}
+        </Box>
+        <Box>
+          {positions.map((p, idx) => (
+            <PositionBox key={idx} {...p} />
+          ))}
+        </Box>
+      </SimpleGrid>
+    </>
   );
 };
 
