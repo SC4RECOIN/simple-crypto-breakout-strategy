@@ -4,6 +4,7 @@ import { useQuery } from "react-query";
 import { getAccountInfo, getOpenOrders } from "./api/api";
 import { AccountData, OpenOrder, Position } from "./api/types";
 import { useCardColor } from "./ColorModeSwitcher";
+import { isMobile } from "react-device-detect";
 
 const Row = (props: { label: string; value: string | number }) => (
   <Flex>
@@ -42,7 +43,16 @@ const OrderBox = (props: OpenOrder) => {
   );
 };
 
-const AccountInfo = () => {
+const EmptyBox = (props: { msg: string }) => {
+  const bg = useCardColor();
+  return (
+    <Box bg={bg} borderRadius="8px" p="2rem">
+      <Text opacity="50%">{props.msg}</Text>
+    </Box>
+  );
+};
+
+const Positions = () => {
   const accountQuery = useQuery("account-info", getAccountInfo);
   const ordersQuery = useQuery("orders", getOpenOrders);
   const act = accountQuery.data || ({} as AccountData);
@@ -60,15 +70,21 @@ const AccountInfo = () => {
   }
 
   return (
-    <SimpleGrid columns={2} spacing={10} mt="4rem">
-      <Text fontSize="2xl">Open Orders</Text>
-      <Text fontSize="2xl">Positions</Text>
+    <SimpleGrid columns={isMobile ? 1 : 2} spacing={10} mt="3rem">
       <Box>
+        <Text fontSize="2xl" m="1rem">
+          Open Orders
+        </Text>
+        {!orders.length && <EmptyBox msg="No open orders" />}
         {orders.map((o) => (
           <OrderBox key={o.id} {...o} />
         ))}
       </Box>
       <Box>
+        <Text fontSize="2xl" m="1rem">
+          Positions
+        </Text>
+        {!positions.length && <EmptyBox msg="No positions" />}
         {positions.map((p, idx) => (
           <PositionBox key={idx} {...p} />
         ))}
@@ -77,4 +93,4 @@ const AccountInfo = () => {
   );
 };
 
-export default AccountInfo;
+export default Positions;

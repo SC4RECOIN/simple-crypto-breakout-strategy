@@ -1,7 +1,7 @@
 import React from "react";
 import {
   Stat,
-  HStack,
+  SimpleGrid,
   StatLabel,
   StatNumber,
   useToast,
@@ -11,6 +11,7 @@ import numeral from "numeral";
 import { getAccountInfo, getBuyTarget } from "./api/api";
 import { AccountData } from "./api/types";
 import { useQuery } from "react-query";
+import { isMobile } from "react-device-detect";
 
 const Stats = () => {
   const accountQuery = useQuery("account-info", getAccountInfo);
@@ -41,7 +42,7 @@ const Stats = () => {
   }
 
   return (
-    <HStack mb="3rem">
+    <SimpleGrid columns={isMobile ? 2 : 4} spacing={6} mb="3rem">
       <Stat>
         <StatLabel>Current Price</StatLabel>
         <StatNumber fontSize="3xl">
@@ -68,7 +69,7 @@ const Stats = () => {
           {numeral(act.totalPositionSize).format("$0,00")}
         </StatNumber>
       </Stat>
-    </HStack>
+    </SimpleGrid>
   );
 };
 

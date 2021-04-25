@@ -4,8 +4,9 @@ import { ColorModeScript, ChakraProvider, Box, theme } from "@chakra-ui/react";
 import { ColorModeSwitcher } from "./ColorModeSwitcher";
 import TargetProgress from "./Progress";
 import { QueryClient, QueryClientProvider } from "react-query";
-import AccountInfo from "./AccountInfo";
+import Positions from "./Positions";
 import Stats from "./Stats";
+import { isMobile } from "react-device-detect";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -21,10 +22,10 @@ ReactDOM.render(
     <QueryClientProvider client={queryClient}>
       <ChakraProvider theme={theme}>
         <ColorModeSwitcher />
-        <Box p="6rem">
+        <Box p={isMobile ? "2rem" : "6rem"}>
           <Stats />
           <TargetProgress />
-          <AccountInfo />
+          <Positions />
         </Box>
       </ChakraProvider>
     </QueryClientProvider>
