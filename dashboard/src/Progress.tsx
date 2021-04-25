@@ -1,5 +1,15 @@
 import React from "react";
-import { Progress, Box, Text, HStack, useToast } from "@chakra-ui/react";
+import {
+  Progress,
+  Box,
+  Text,
+  HStack,
+  useToast,
+  Stat,
+  StatHelpText,
+  StatLabel,
+  StatNumber,
+} from "@chakra-ui/react";
 import { getBuyTarget } from "./api/api";
 import { useQuery } from "react-query";
 import numeral from "numeral";
@@ -26,6 +36,13 @@ const TargetProgress = () => {
 
   return (
     <Box>
+      <Stat mb="3rem">
+        <StatLabel>Current Price</StatLabel>
+        <StatNumber>${numeral(t?.last).format("0.00")}</StatNumber>
+        <StatHelpText>
+          Target - ${numeral(t?.target).format("0.00")}
+        </StatHelpText>
+      </Stat>
       <HStack mb="1rem">
         <Text>Distance to Target</Text>
         <Text opacity="50%">- {numeral(progress).format("0 %")}</Text>
