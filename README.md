@@ -10,6 +10,9 @@ Catch breakouts by opening positions based on previous day's range. Popularized 
 
 ## Docker
 
+Make sure to set `secret` and `key` in `config.json` or pass as env vars.  
+See `Makefile`
+
 ```bash
 > docker build breakout-trader .
 > docker run -p 4000:4000 breakout-trader
