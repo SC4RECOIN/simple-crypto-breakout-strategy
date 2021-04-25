@@ -66,7 +66,19 @@ func (t *Trader) NewDay() {
 	t.open = &c.Close
 
 	if !t.active {
-		fmt.Println("trader not active; orders will not be placed")
+		fmt.Println("trader not active; order will not be placed")
+		return
+	}
+
+	snapshot, err := t.exchange.GetMarket()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("target: $%.2f\tcurrent ask: $%.2f\n", target, snapshot.Ask)
+
+	if snapshot.Ask > target {
+		fmt.Println("current price is above target; order will not be placed")
 		return
 	}
 

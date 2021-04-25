@@ -2,6 +2,7 @@ package models
 
 import (
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"os"
 
@@ -44,6 +45,31 @@ func (config *Configuration) LoadConfig() error {
 
 	if secret := os.Getenv("FTX_SECRET"); secret != "" && config.Secret == "" {
 		config.Secret = secret
+	}
+
+	return config.Validate()
+}
+
+func (config *Configuration) Validate() error {
+	if config.Key == "" || config.Secret == "" {
+		msg := "config key and secret cannot be empty"
+		return errors.New(msg)
+	}
+
+	if config.Ticker == "" {
+		return errors.New("ticker cannot be empty")
+	}
+
+	if config.K <= 0 {
+		return errors.New("k must be greater than 0")
+	}
+
+	if config.Leverage < 1 {
+		return errors.New("leverage must be 1 or greater")
+	}
+
+	if config.StopLoss*float64(config.Leverage) > 0.4 {
+		return errors.New("config too risky; reduce stoploss or leverage")
 	}
 
 	return nil
