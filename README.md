@@ -12,5 +12,5 @@ Catch breakouts by opening positions based on previous day's range. Popularized 
 
 ```bash
 > docker build breakout-trader .
-> docker run -d -p 4000:4000 breakout-trader
+> docker run -p 4000:4000 breakout-trader
 ```
