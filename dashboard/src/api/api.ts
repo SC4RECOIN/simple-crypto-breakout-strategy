@@ -7,7 +7,6 @@ import {
   Target,
 } from "./types";
 
-console.log(window.location);
 const instance = axios.create({ baseURL: window.location.origin });
 
 export const getBuyTarget = async (): Promise<Target> => {
