@@ -23,3 +23,18 @@ export interface Position {
   unrealizedPnl: number;
   realizedPnl: number;
 }
+
+export interface OpenOrder {
+  type: string;
+  orderType: string;
+  status: string;
+  future: string;
+  side: string;
+  orderPrice: number;
+  size: number;
+  triggerPrice: number;
+  avgFillPrice: number;
+  reduceOnly: boolean;
+  filledSize: number;
+  id: number;
+}
