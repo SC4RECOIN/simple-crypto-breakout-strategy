@@ -33,7 +33,7 @@ func StartTrader(config models.Configuration) *Trader {
 		active:    config.AutoStart,
 	}
 
-	trader.NewDay()
+	trader.NewDay(true)
 	ftx.GetTrades(trader.NewTrade)
 	go ftx.Subscribe()
 
@@ -47,13 +47,16 @@ func (t *Trader) NewTrade(price float64, ts time.Time) {
 	if timeDelta > time.Hour*24 {
 		fmt.Println("new day")
 		t.lastClose = t.lastClose.Add(time.Hour * 24)
-		t.NewDay()
+		t.NewDay(false)
 	}
 }
 
-func (t *Trader) NewDay() {
-	fmt.Println("closing all positions")
-	t.exchange.CloseAll()
+func (t *Trader) NewDay(appStart bool) {
+	// don't close positions if app is just restarting
+	if !appStart {
+		fmt.Println("closing all positions")
+		t.exchange.CloseAll()
+	}
 
 	c, err := t.exchange.GetLastDay()
 	if err != nil {
@@ -64,6 +67,11 @@ func (t *Trader) NewDay() {
 	target := c.Close + tRange
 	t.target = &target
 	t.open = &c.Close
+
+	if appStart && len(t.exchange.AccountInfo.Positions) > 0 {
+		fmt.Println("trader already in positions; order will not be placed")
+		return
+	}
 
 	if !t.active {
 		fmt.Println("trader not active; order will not be placed")

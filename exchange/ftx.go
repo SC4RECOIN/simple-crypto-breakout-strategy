@@ -87,8 +87,8 @@ func (ftx *FTX) Subscribe() {
 				fmt.Printf("Order fill:\tprice: %.2f\tsize: %f.4f\tnotional: %.2f\n", price, size, price*size)
 
 			case realtime.ORDERS:
-				// order has been filled
-				if v.Orders.RemainingSize == 0 {
+				// buy order has been filled
+				if v.Orders.RemainingSize == 0 && v.Orders.Side == string(models.Buy) {
 					ftx.SetStoploss(v.Orders.AvgFillPrice, v.Orders.FilledSize)
 				}
 			}
