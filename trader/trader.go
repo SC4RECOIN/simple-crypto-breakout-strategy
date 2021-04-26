@@ -22,6 +22,8 @@ type Trader struct {
 	lastPrice *float64
 }
 
+// StartTrader will configure trader, set targets,
+// subscribe to ws, and send orders if active
 func StartTrader(config models.Configuration) *Trader {
 	ftx := exchange.New(config)
 	now := time.Now().UTC()
@@ -40,6 +42,8 @@ func StartTrader(config models.Configuration) *Trader {
 	return &trader
 }
 
+// NewTrade is called by the ws trade feed and
+// updates the last price and checks for a new day
 func (t *Trader) NewTrade(price float64, ts time.Time) {
 	timeDelta := ts.Sub(t.lastClose)
 	t.lastPrice = &price
@@ -51,6 +55,9 @@ func (t *Trader) NewTrade(price float64, ts time.Time) {
 	}
 }
 
+// NewDay will close all positions and set the
+// buy target. `appStart` can be set to `true` if
+// the app is just starting and shouldn't close all positions
 func (t *Trader) NewDay(appStart bool) {
 	// don't close positions if app is just restarting
 	if !appStart {
@@ -126,6 +133,7 @@ func (t *Trader) IsActive() bool {
 	return t.active
 }
 
+// SetActive will turn the trader on/off
 func (t *Trader) SetActive(value bool) {
 	t.active = value
 }
