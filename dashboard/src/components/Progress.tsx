@@ -19,7 +19,7 @@ const TargetProgress = () => {
     <Box>
       <HStack mb="1rem">
         <Text>Distance to Target</Text>
-        <Text opacity="50%">- {numeral(progress).format("0 %")}</Text>
+        <Text opacity="50%">~ {numeral(progress).format("(0 %)")}</Text>
       </HStack>
       <Progress
         colorScheme={progress > 1 ? "green" : "blue"}

@@ -6,3 +6,7 @@ run:
 	-e FTX_KEY=${FTX_KEY} \
 	-e FTX_SECRET=${FTX_SECRET} \
 	breakout-trader 
+
+run-dashboard:
+	cd dashboard && \
+	REACT_APP_URL="http://localhost:4000" npm run start

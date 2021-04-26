@@ -18,7 +18,7 @@ export interface Position {
   future: string;
   side: string;
   entryPrice: number;
-  etimatedLiquidationPrice: number;
+  estimatedLiquidationPrice: number;
   size: number;
   cost: number;
   unrealizedPnl: number;

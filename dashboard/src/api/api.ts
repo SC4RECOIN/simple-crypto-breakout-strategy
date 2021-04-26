@@ -7,7 +7,9 @@ import {
   Target,
 } from "./types";
 
-const instance = axios.create({ baseURL: window.location.origin });
+const instance = axios.create({
+  baseURL: process.env.REACT_APP_URL || window.location.origin,
+});
 
 export const getBuyTarget = async (): Promise<Target> => {
   const res = await instance.get<Target>("/target");

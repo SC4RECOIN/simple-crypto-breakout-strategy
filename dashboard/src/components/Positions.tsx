@@ -5,6 +5,7 @@ import { getAccountInfo, getOpenOrders } from "../api/api";
 import { AccountData, OpenOrder, Position } from "../api/types";
 import { useCardColor } from "./ColorModeSwitcher";
 import { isMobile } from "react-device-detect";
+import numeral from "numeral";
 
 const Row = (props: { label: string; value: string | number }) => (
   <Flex>
@@ -17,14 +18,20 @@ const Row = (props: { label: string; value: string | number }) => (
 
 const PositionBox = (props: Position) => {
   const bg = useCardColor();
+  const fmt = (value: number) => numeral(value).format("$0.00");
   return (
     <SimpleGrid columns={1} spacing={5} bg={bg} borderRadius="8px" p="2rem">
       <Row label="Future" value={props.future} />
-      <Row label="Entry Price" value={props.entryPrice} />
-      <Row label="Liquidation Price" value={props.etimatedLiquidationPrice} />
+      <Row label="Side" value={props.side} />
+      <Row
+        label="Liquidation Price"
+        value={fmt(props.estimatedLiquidationPrice)}
+      />
       <Row label="Size" value={props.size} />
-      <Row label="Entry Price" value={props.entryPrice} />
-      <Row label="Return" value={props.unrealizedPnl} />
+      <Row
+        label="Return"
+        value={fmt(props.unrealizedPnl + props.realizedPnl)}
+      />
     </SimpleGrid>
   );
 };
@@ -34,10 +41,12 @@ const OrderBox = (props: OpenOrder) => {
   return (
     <SimpleGrid columns={1} spacing={5} bg={bg} borderRadius="8px" p="2rem">
       <Row label="Future" value={props.future} />
-      <Row label="Order Type" value={props.orderType} />
       <Row label="Side" value={props.side} />
       <Row label="Size" value={props.size} />
-      <Row label="Trigger Price" value={props.triggerPrice} />
+      <Row
+        label="Trigger Price"
+        value={numeral(props.triggerPrice).format("$0.00")}
+      />
       <Row label="Reduce Only" value={props.reduceOnly.toString()} />
     </SimpleGrid>
   );

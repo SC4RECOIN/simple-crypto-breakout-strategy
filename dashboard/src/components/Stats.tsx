@@ -37,12 +37,20 @@ const Stats = () => {
   }
 
   let chg = 0;
-  if (t) {
-    chg = t.last / t.open - 1;
+  if (t) chg = t.last / t.open - 1;
+
+  // assuming only 1 position
+  let posReturn = 0;
+  let statColumns = 4;
+  if (act.positions.length) {
+    const pos = act.positions[0];
+    const actVal = act.totalAccountValue;
+    posReturn = actVal / (actVal - pos.realizedPnl) - 1;
+    statColumns = 5;
   }
 
   return (
-    <SimpleGrid columns={isMobile ? 2 : 4} spacing={6} mb="3rem">
+    <SimpleGrid columns={isMobile ? 2 : statColumns} spacing={6} mb="3rem">
       <Stat>
         <StatLabel>Current Price</StatLabel>
         <StatNumber fontSize="3xl">
@@ -69,6 +77,14 @@ const Stats = () => {
           {numeral(act.totalPositionSize).format("$0,00")}
         </StatNumber>
       </Stat>
+      {act.positions.length && (
+        <Stat>
+          <StatLabel>Position Return</StatLabel>
+          <StatNumber fontSize="3xl">
+            {numeral(posReturn).format("+0.00 %")}
+          </StatNumber>
+        </Stat>
+      )}
     </SimpleGrid>
   );
 };
