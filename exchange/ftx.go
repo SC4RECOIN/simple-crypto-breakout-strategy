@@ -84,7 +84,7 @@ func (ftx *FTX) Subscribe() {
 			case realtime.FILLS:
 				price := v.Fills.Price
 				size := v.Fills.Size
-				fmt.Printf("Order fill:\tprice: %.2f\tsize: %f.4f\tnotional: %.2f\n", price, size, price*size)
+				fmt.Printf("Order fill:\tprice: %.2f\tsize: %.4f\tnotional: %.2f\n", price, size, price*size)
 
 			case realtime.ORDERS:
 				// buy order has been filled
