@@ -1,6 +1,6 @@
 # Simple Cryptocurrency Breakout Strategy
 
-Catch breakouts by opening positions based on previous day's range. Popularized by Larry Williams.
+Catch breakouts by opening positions based on the previous day's range. Popularized by Larry Williams.
 
 ## Strategy
 
@@ -17,3 +17,5 @@ See `Makefile`
 > docker build breakout-trader .
 > docker run -p 4000:4000 breakout-trader
 ```
+
+Navigate to `http://localhost:4000` for dashboard
