@@ -8,7 +8,6 @@ import (
 
 	"github.com/SC4RECOIN/simple-crypto-breakout-strategy/exchange"
 	"github.com/SC4RECOIN/simple-crypto-breakout-strategy/models"
-	"github.com/go-numb/go-ftx/rest/private/fills"
 	"github.com/go-numb/go-ftx/rest/private/orders"
 )
 
@@ -73,7 +72,18 @@ func (t *Trader) NewDay(appStart bool) {
 
 	// don't close positions if app starting mid-day
 	if appStart && len(t.exchange.AccountInfo.Positions) > 0 {
-		fmt.Println("trader already in positions; order will not be placed")
+		fmt.Println("trader already in position; order will not be placed")
+		return
+	}
+
+	// a position has been open and closed already
+	fills, err := t.exchange.GetFills()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if appStart && len(*fills) > 0 {
+		fmt.Println("trader already entered position today; order will not be placed")
 		return
 	}
 
@@ -117,7 +127,7 @@ func (t *Trader) GetAccountInfo() (*models.AccountInfoResponse, error) {
 		TotalAccountValue: t.exchange.AccountInfo.TotalAccountValue,
 		TotalPositionSize: t.exchange.AccountInfo.TotalPositionSize,
 		Positions:         t.exchange.AccountInfo.Positions,
-		Fills:             []fills.Fill(*recentFills),
+		Fills:             recentFills,
 	}
 
 	return resp, nil

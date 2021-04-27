@@ -171,7 +171,7 @@ func (ftx *FTX) UpdateAccountInfo() {
 	}
 
 	// filter out positions that have been closed
-	var positions []account.Position
+	positions := []account.Position{}
 	for _, pos := range info.Positions {
 		if pos.Size > 0 {
 			positions = append(positions, pos)
@@ -254,10 +254,19 @@ func (ftx *FTX) GetOpenOrders() (*orders.ResponseForOpenTriggerOrders, error) {
 	return ftx.client.OpenTriggerOrders(&orders.RequestForOpenTriggerOrders{})
 }
 
-// GetFills returns all fills in last 24hrs
-func (ftx *FTX) GetFills() (*fills.Response, error) {
-	return ftx.client.Fills(&fills.Request{
+// GetFills returns all fills since start of day
+func (ftx *FTX) GetFills() (*[]fills.Fill, error) {
+	now := time.Now().UTC()
+
+	resp, err := ftx.client.Fills(&fills.Request{
 		ProductCode: ftx.config.Ticker,
-		Start:       time.Now().Add(-24 * time.Hour).Unix(),
+		Start:       now.Truncate(24 * time.Hour).Unix(),
 	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	fills := []fills.Fill(*resp)
+	return &fills, nil
 }

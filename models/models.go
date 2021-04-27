@@ -91,7 +91,7 @@ type AccountInfoResponse struct {
 	TotalAccountValue float64            `json:"totalAccountValue"`
 	TotalPositionSize float64            `json:"totalPositionSize"`
 	Positions         []account.Position `json:"positions"`
-	Fills             []fills.Fill       `json:"fills"`
+	Fills             *[]fills.Fill      `json:"fills"`
 }
 
 type Target struct {
