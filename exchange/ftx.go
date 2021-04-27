@@ -11,6 +11,7 @@ import (
 	"github.com/go-numb/go-ftx/realtime"
 	"github.com/go-numb/go-ftx/rest"
 	"github.com/go-numb/go-ftx/rest/private/account"
+	"github.com/go-numb/go-ftx/rest/private/fills"
 	"github.com/go-numb/go-ftx/rest/private/orders"
 	"github.com/go-numb/go-ftx/rest/public/markets"
 )
@@ -85,7 +86,7 @@ func (ftx *FTX) Subscribe() {
 				price := v.Fills.Price
 				size := v.Fills.Size
 				if size > 0 {
-					fmt.Printf("Order fill:\tprice: %.2f\tsize: %.4f\n", price, size)
+					fmt.Printf("order fill:\tprice: %.2f\tsize: %.4f\n", price, size)
 				}
 
 			case realtime.ORDERS:
@@ -93,6 +94,13 @@ func (ftx *FTX) Subscribe() {
 				if v.Orders.RemainingSize == 0 && v.Orders.Side == string(models.Buy) {
 					ftx.SetStoploss(v.Orders.AvgFillPrice, v.Orders.FilledSize)
 				}
+
+			case realtime.ERROR:
+				fmt.Printf("websocker err: %v\n", v.Results)
+
+				// ws has be unsubscribed; reconnect
+				fmt.Println("attempting to reconnect in 5sec")
+				time.AfterFunc(10*time.Second, ftx.Subscribe)
 			}
 		}
 	}
@@ -244,4 +252,12 @@ func (ftx *FTX) GetMarket() (*markets.Market, error) {
 
 func (ftx *FTX) GetOpenOrders() (*orders.ResponseForOpenTriggerOrders, error) {
 	return ftx.client.OpenTriggerOrders(&orders.RequestForOpenTriggerOrders{})
+}
+
+// GetFills returns all fills in last 24hrs
+func (ftx *FTX) GetFills() (*fills.Response, error) {
+	return ftx.client.Fills(&fills.Request{
+		ProductCode: ftx.config.Ticker,
+		Start:       time.Now().Add(-24 * time.Hour).Unix(),
+	})
 }

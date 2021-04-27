@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/go-numb/go-ftx/rest/private/account"
+	"github.com/go-numb/go-ftx/rest/private/fills"
 )
 
 type Configuration struct {
@@ -82,6 +83,15 @@ type AccountInfo struct {
 	TotalPositionSize float64            `json:"totalPositionSize"`
 	Leverage          float64            `json:"leverage"`
 	Positions         []account.Position `json:"positions"`
+}
+
+type AccountInfoResponse struct {
+	Collateral        float64            `json:"collateral"`
+	FreeCollateral    float64            `json:"freeCollateral"`
+	TotalAccountValue float64            `json:"totalAccountValue"`
+	TotalPositionSize float64            `json:"totalPositionSize"`
+	Positions         []account.Position `json:"positions"`
+	Fills             []fills.Fill       `json:"fills"`
 }
 
 type Target struct {

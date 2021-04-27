@@ -8,6 +8,7 @@ import (
 
 	"github.com/SC4RECOIN/simple-crypto-breakout-strategy/exchange"
 	"github.com/SC4RECOIN/simple-crypto-breakout-strategy/models"
+	"github.com/go-numb/go-ftx/rest/private/fills"
 	"github.com/go-numb/go-ftx/rest/private/orders"
 )
 
@@ -102,9 +103,24 @@ func (t *Trader) NewDay(appStart bool) {
 	}
 }
 
-func (t *Trader) GetAccountInfo() *models.AccountInfo {
+func (t *Trader) GetAccountInfo() (*models.AccountInfoResponse, error) {
 	t.exchange.UpdateAccountInfo()
-	return t.exchange.AccountInfo
+
+	recentFills, err := t.exchange.GetFills()
+	if err != nil {
+		return nil, err
+	}
+
+	resp := &models.AccountInfoResponse{
+		Collateral:        t.exchange.AccountInfo.Collateral,
+		FreeCollateral:    t.exchange.AccountInfo.FreeCollateral,
+		TotalAccountValue: t.exchange.AccountInfo.TotalAccountValue,
+		TotalPositionSize: t.exchange.AccountInfo.TotalPositionSize,
+		Positions:         t.exchange.AccountInfo.Positions,
+		Fills:             []fills.Fill(*recentFills),
+	}
+
+	return resp, nil
 }
 
 func (t *Trader) GetOpenOrders() (*orders.ResponseForOpenTriggerOrders, error) {

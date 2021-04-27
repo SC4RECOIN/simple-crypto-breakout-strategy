@@ -42,7 +42,13 @@ func start() {
 	})
 
 	app.Get("/account-info", func(c *fiber.Ctx) error {
-		return c.JSON(t.GetAccountInfo())
+		info, err := t.GetAccountInfo()
+		if err != nil {
+			c.Status(500)
+			return c.JSON(errMsg(err))
+		}
+
+		return c.JSON(info)
 	})
 
 	app.Get("/open-orders", func(c *fiber.Ctx) error {
