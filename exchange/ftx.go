@@ -257,10 +257,14 @@ func (ftx *FTX) GetOpenOrders() (*orders.ResponseForOpenTriggerOrders, error) {
 // GetFills returns all fills since start of day
 func (ftx *FTX) GetFills() (*[]fills.Fill, error) {
 	now := time.Now().UTC()
+	startOfDay := now.Truncate(24 * time.Hour)
+
+	// avoid getting fills for eod closes
+	start := startOfDay.Add(5 * time.Minute)
 
 	resp, err := ftx.client.Fills(&fills.Request{
 		ProductCode: ftx.config.Ticker,
-		Start:       now.Truncate(24 * time.Hour).Unix(),
+		Start:       start.Unix(),
 	})
 
 	if err != nil {
