@@ -48,5 +48,5 @@ def fetch_hist(pair: str, start: str, use_cache=True) -> pd.DataFrame:
 
 
 if __name__ == "__main__":
-    df = fetch_hist("ETHUSDT", "2021-04-01")
+    df = fetch_hist("ETHUSDT", "2017-10-01")
     print(f"length: {len(df)}")
