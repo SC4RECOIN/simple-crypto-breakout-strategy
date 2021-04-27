@@ -42,7 +42,7 @@ const Stats = () => {
   // assuming only 1 position
   let posReturn = 0;
   let statColumns = 4;
-  if (act.positions.length) {
+  if (act.positions?.length) {
     const pos = act.positions[0];
     const actVal = act.totalAccountValue;
     posReturn = actVal / (actVal - pos.realizedPnl) - 1;
@@ -77,7 +77,7 @@ const Stats = () => {
           {numeral(act.totalPositionSize).format("$0,00")}
         </StatNumber>
       </Stat>
-      {act.positions.length && (
+      {act.positions?.length && (
         <Stat>
           <StatLabel>Position Return</StatLabel>
           <StatNumber fontSize="3xl">

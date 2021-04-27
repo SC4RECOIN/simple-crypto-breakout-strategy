@@ -84,7 +84,9 @@ func (ftx *FTX) Subscribe() {
 			case realtime.FILLS:
 				price := v.Fills.Price
 				size := v.Fills.Size
-				fmt.Printf("Order fill:\tprice: %.2f\tsize: %.4f\tnotional: %.2f\n", price, size, price*size)
+				if size > 0 {
+					fmt.Printf("Order fill:\tprice: %.2f\tsize: %.4f\n", price, size)
+				}
 
 			case realtime.ORDERS:
 				// buy order has been filled
@@ -160,13 +162,21 @@ func (ftx *FTX) UpdateAccountInfo() {
 		return
 	}
 
+	// filter out positions that have been closed
+	var positions []account.Position
+	for _, pos := range info.Positions {
+		if pos.Size > 0 {
+			positions = append(positions, pos)
+		}
+	}
+
 	ftx.AccountInfo = &models.AccountInfo{
 		Collateral:        info.Collateral,
 		FreeCollateral:    info.FreeCollateral,
 		TotalAccountValue: info.TotalAccountValue,
 		TotalPositionSize: info.TotalPositionSize,
 		Leverage:          info.Leverage,
-		Positions:         info.Positions,
+		Positions:         positions,
 	}
 }
 
