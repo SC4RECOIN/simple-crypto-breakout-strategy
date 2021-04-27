@@ -59,12 +59,7 @@ func (t *Trader) NewTrade(price float64, ts time.Time) {
 // buy target. `appStart` can be set to `true` if
 // the app is just starting and shouldn't close all positions
 func (t *Trader) NewDay(appStart bool) {
-	// don't close positions if app is just restarting
-	if !appStart {
-		fmt.Println("closing all positions")
-		t.exchange.CloseAll()
-	}
-
+	// get yesterdays candle
 	c, err := t.exchange.GetLastDay()
 	if err != nil {
 		log.Fatal(err)
@@ -75,10 +70,14 @@ func (t *Trader) NewDay(appStart bool) {
 	t.target = &target
 	t.open = &c.Close
 
+	// don't close positions if app starting mid-day
 	if appStart && len(t.exchange.AccountInfo.Positions) > 0 {
 		fmt.Println("trader already in positions; order will not be placed")
 		return
 	}
+
+	fmt.Println("closing all positions")
+	t.exchange.CloseAll()
 
 	if !t.active {
 		fmt.Println("trader not active; order will not be placed")

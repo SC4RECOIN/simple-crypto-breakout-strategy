@@ -20,7 +20,14 @@ const PositionBox = (props: Position) => {
   const bg = useCardColor();
   const fmt = (value: number) => numeral(value).format("$0.00");
   return (
-    <SimpleGrid columns={1} spacing={5} bg={bg} borderRadius="8px" p="2rem">
+    <SimpleGrid
+      columns={1}
+      spacing={5}
+      bg={bg}
+      borderRadius="8px"
+      p="2rem"
+      mb="2rem"
+    >
       <Row label="Future" value={props.future} />
       <Row label="Side" value={props.side} />
       <Row
@@ -39,7 +46,14 @@ const PositionBox = (props: Position) => {
 const OrderBox = (props: OpenOrder) => {
   const bg = useCardColor();
   return (
-    <SimpleGrid columns={1} spacing={5} bg={bg} borderRadius="8px" p="2rem">
+    <SimpleGrid
+      columns={1}
+      spacing={5}
+      bg={bg}
+      borderRadius="8px"
+      p="2rem"
+      mb="2rem"
+    >
       <Row label="Future" value={props.future} />
       <Row label="Side" value={props.side} />
       <Row label="Size" value={props.size} />
