@@ -1,19 +1,12 @@
 from binance.client import Client
-from dataclasses import dataclass, asdict
+from dataclasses import asdict
 from datetime import datetime
 import pandas as pd
 import pathlib
 import os
 
-
-@dataclass
-class OHLCV:
-    time: datetime
-    open: float
-    high: float
-    low: float
-    close: float
-    volume: float
+from trader import Trader
+from models import OHLCV
 
 
 def fetch_hist(pair: str, start: str, use_cache=True) -> pd.DataFrame:
@@ -48,5 +41,6 @@ def fetch_hist(pair: str, start: str, use_cache=True) -> pd.DataFrame:
 
 
 if __name__ == "__main__":
-    df = fetch_hist("ETHUSDT", "2017-10-01")
-    print(f"length: {len(df)}")
+    df = fetch_hist("ETHUSDT", "2021-04-01")
+    trader = Trader(0.6, 0.02)
+    trader.backtest(df)
