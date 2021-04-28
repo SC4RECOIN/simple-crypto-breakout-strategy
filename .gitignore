@@ -4,3 +4,6 @@
 **/build
 main
 *.txt
+.vscode
+!requirements.txt
+*.pkl
