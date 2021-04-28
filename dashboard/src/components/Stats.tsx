@@ -77,7 +77,7 @@ const Stats = () => {
           {numeral(act.totalPositionSize).format("$0,00")}
         </StatNumber>
       </Stat>
-      {act.positions?.length && (
+      {act.positions?.length > 0 && (
         <Stat>
           <StatLabel>Position Return</StatLabel>
           <StatNumber fontSize="3xl">
