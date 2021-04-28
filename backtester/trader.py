@@ -11,6 +11,7 @@ class Trader(object):
         self.last_start = None
 
         self.target = None
+        self.sl = None
         self.current_candle = None
 
     def backtest(self, df: pd.DataFrame):
@@ -23,8 +24,18 @@ class Trader(object):
 
         # new day
         if (ts - self.last_start).days > 0:
-            print(self.current_candle)
+            self.close_positions()
+
+            # calculate new target
+            c = self.current_candle
+            r = (c.high - c.low) * self.k
+            self.target = c.close + r
+
+            self.new_day(candle)
             exit()
+
+    def close_positions(self):
+        pass
 
     def new_day(self, candle: OHLCV):
         start_ts = arrow.get(candle.time)
