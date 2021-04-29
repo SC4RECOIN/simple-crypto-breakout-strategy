@@ -99,8 +99,8 @@ func (ftx *FTX) Subscribe() {
 				fmt.Printf("websocker err: %v\n", v.Results)
 
 				// ws has be unsubscribed; reconnect
-				fmt.Println("attempting to reconnect in 5sec")
-				time.AfterFunc(10*time.Second, ftx.Subscribe)
+				fmt.Println("attempting to reconnect in 30sec", time.Now())
+				time.AfterFunc(30*time.Second, ftx.Subscribe)
 			}
 		}
 	}

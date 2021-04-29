@@ -51,7 +51,10 @@ func (t *Trader) NewTrade(price float64, ts time.Time) {
 	if timeDelta > time.Hour*24 {
 		fmt.Println("new day")
 		t.lastClose = t.lastClose.Add(time.Hour * 24)
-		t.NewDay(false)
+
+		// wait a minute for historical data to update
+		newDay := func() { t.NewDay(false) }
+		time.AfterFunc(time.Minute, newDay)
 	}
 }
 
