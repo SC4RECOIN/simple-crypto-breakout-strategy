@@ -20,6 +20,7 @@ type Trader struct {
 	open      *float64
 	target    *float64
 	lastPrice *float64
+	lastTime  *time.Time
 }
 
 // StartTrader will configure trader, set targets,
@@ -55,6 +56,7 @@ func StartTrader(config models.Configuration) *Trader {
 func (t *Trader) NewTrade(price float64, ts time.Time) {
 	timeDelta := ts.Sub(t.lastClose)
 	t.lastPrice = &price
+	t.lastTime = &ts
 
 	if timeDelta > time.Hour*24 {
 		fmt.Println("new day")
@@ -187,10 +189,11 @@ func (t *Trader) LastPrice() (float64, error) {
 
 func (t *Trader) GetTarget() *models.Target {
 	return &models.Target{
-		Last:   *t.lastPrice,
-		Target: *t.target,
-		Open:   *t.open,
-		Ticker: t.config.Ticker,
+		Last:     *t.lastPrice,
+		LastTime: *t.lastTime,
+		Target:   *t.target,
+		Open:     *t.open,
+		Ticker:   t.config.Ticker,
 	}
 }
 

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"os"
+	"time"
 
 	"github.com/go-numb/go-ftx/rest/private/account"
 	"github.com/go-numb/go-ftx/rest/private/fills"
@@ -95,8 +96,9 @@ type AccountInfoResponse struct {
 }
 
 type Target struct {
-	Last   float64 `json:"last"`
-	Target float64 `json:"target"`
-	Open   float64 `json:"open"`
-	Ticker string  `json:"ticker"`
+	Last     float64   `json:"last"`
+	LastTime time.Time `json:"lastTime"`
+	Target   float64   `json:"target"`
+	Open     float64   `json:"open"`
+	Ticker   string    `json:"ticker"`
 }
