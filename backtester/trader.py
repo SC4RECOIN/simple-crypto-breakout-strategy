@@ -19,7 +19,8 @@ class Trader(object):
         self.last_start = None
 
         self.balance = 10000
-        self.balance_hist = [self.balance]
+        self.balance_hist = []
+        self.benchmark = []
         self.trade_cnt = 0
 
         self.target = None
@@ -29,12 +30,19 @@ class Trader(object):
 
     def print_stats(self, plot=True):
         chg = np.diff(self.balance_hist) / self.balance_hist[:-1]
+        b = np.diff(self.benchmark) / self.benchmark[:-1]
         r = self.balance_hist[-1] / self.balance_hist[0] - 1
 
         print(f"\ntrades:\t\t\t{self.trade_cnt}")
         print(f"max drawdown:\t\t{max_drawdown(chg)*100:.3f}%")
         print(f"return:\t\t\t{r*100:.3f}%")
         print(f"annual return:\t\t{annual_return(chg, annualization=365)*100:.3f}%")
+
+        # benchmark
+        print(f"benchmark max drawdown:\t{max_drawdown(b)*100:.3f}%")
+        bench = self.benchmark[-1] / self.benchmark[0] - 1
+        print(f"benchmark return:\t{(bench)*100:.3f}%")
+        print(f"benchmark annual:\t{annual_return(b, annualization=365)*100:.3f}%")
 
         if plot:
             plt.plot(self.balance_hist, label="portfolio value")
@@ -53,6 +61,7 @@ class Trader(object):
         if (ts - self.last_start).days > 0:
             self.close_positions(candle.open)
             self.balance_hist.append(self.balance)
+            self.benchmark.append(candle.close)
 
             # calculate new target
             c = self.current_candle
