@@ -41,6 +41,7 @@ def fetch_hist(pair: str, start: str, use_cache=True) -> pd.DataFrame:
 
 
 if __name__ == "__main__":
-    df = fetch_hist("ETHUSDT", "2021-04-01")
+    df = fetch_hist("ETHUSDT", "2017-11-01")
     trader = Trader(0.6, 0.02)
     trader.backtest(df)
+    trader.print_stats()
