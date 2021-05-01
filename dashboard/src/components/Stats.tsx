@@ -39,15 +39,14 @@ const Stats = () => {
   let chg = 0;
   if (t) chg = t.last / t.open - 1;
 
-  // assuming only 1 position
-  let posReturn = 0;
-  let statColumns = 4;
+  let posReturn;
   if (act.positions?.length) {
-    const pos = act.positions[0];
-    const actVal = act.totalAccountValue;
-    posReturn = actVal / (actVal - pos.realizedPnl) - 1;
-    statColumns = 5;
+    const sum = act.fills.reduce((a, b) => a + b.price, 0);
+    const avgPrice = sum / act.fills.length;
+    posReturn = (t?.last || avgPrice) / avgPrice - 1;
   }
+
+  const statColumns = posReturn ? 5 : 4;
 
   return (
     <SimpleGrid columns={isMobile ? 2 : statColumns} spacing={6} mb="3rem">

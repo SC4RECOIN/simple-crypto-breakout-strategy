@@ -35,10 +35,6 @@ const PositionBox = (props: Position) => {
         value={fmt(props.estimatedLiquidationPrice)}
       />
       <Row label="Size" value={props.size} />
-      <Row
-        label="Return"
-        value={fmt(props.unrealizedPnl + props.realizedPnl)}
-      />
     </SimpleGrid>
   );
 };
@@ -61,7 +57,6 @@ const OrderBox = (props: OpenOrder) => {
         label="Trigger Price"
         value={numeral(props.triggerPrice).format("$0.00")}
       />
-      <Row label="Reduce Only" value={props.reduceOnly.toString()} />
     </SimpleGrid>
   );
 };
