@@ -56,8 +56,8 @@ class Trader(object):
 
     def backtest(self, df: pd.DataFrame):
         self.new_day(df.iloc[0])
-        for idx, candle in tqdm(df.iterrows(), total=len(df)):
-            self.report_candle(OHLCV(**candle))
+        for candle in tqdm(df.values, total=len(df)):
+            self.report_candle(OHLCV(*candle))
 
     def report_candle(self, candle: OHLCV):
         ts = candle.datetime
