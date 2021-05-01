@@ -1,10 +1,12 @@
 from dataclasses import dataclass, asdict
 from datetime import datetime
+from arrow import Arrow
 
 
 @dataclass
 class OHLCV:
-    time: datetime
+    ts: float
+    datetime: Arrow
     open: float
     high: float
     low: float

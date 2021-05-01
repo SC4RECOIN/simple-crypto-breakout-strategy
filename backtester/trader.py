@@ -55,7 +55,7 @@ class Trader(object):
             self.report_candle(OHLCV(**candle))
 
     def report_candle(self, candle: OHLCV):
-        ts = arrow.get(candle.time)
+        ts = candle.datetime
 
         # new day
         if (ts - self.last_start).days > 0:
@@ -107,11 +107,11 @@ class Trader(object):
         self.entry_price = None
 
     def new_day(self, candle: OHLCV):
-        start_ts = arrow.get(candle.time)
-        self.last_start = start_ts.floor("day")
+        self.last_start = candle.datetime.floor("day")
 
         self.current_candle = OHLCV(
-            time=candle.time,
+            ts=candle.ts,
+            datetime=candle.datetime,
             open=candle.open,
             high=candle.high,
             low=candle.low,

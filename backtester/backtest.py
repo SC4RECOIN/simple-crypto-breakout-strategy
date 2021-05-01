@@ -4,6 +4,7 @@ from datetime import datetime
 import pandas as pd
 import pathlib
 import os
+import arrow
 
 from trader import Trader
 from models import OHLCV
@@ -22,7 +23,8 @@ def fetch_hist(pair: str, start: str, use_cache=True) -> pd.DataFrame:
     history = [
         asdict(
             OHLCV(
-                time=datetime.fromtimestamp(c[0] / 1000),
+                ts=c[0],
+                datetime=arrow.get(c[0]),
                 open=float(c[1]),
                 high=float(c[2]),
                 low=float(c[3]),
@@ -42,6 +44,7 @@ def fetch_hist(pair: str, start: str, use_cache=True) -> pd.DataFrame:
 
 if __name__ == "__main__":
     df = fetch_hist("ETHUSDT", "2017-11-01")
+
     trader = Trader(0.6, 0.02, 1)
     trader.backtest(df)
     trader.print_stats()
