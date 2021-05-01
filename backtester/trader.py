@@ -45,7 +45,12 @@ class Trader(object):
         print(f"benchmark annual:\t{annual_return(b, annualization=365)*100:.3f}%")
 
         if plot:
-            plt.plot(self.balance_hist, label="portfolio value")
+            fig, ax1 = plt.subplots()
+            ax1.plot(self.balance_hist, label="portfolio value", color="red")
+
+            ax2 = ax1.twinx()
+            ax2.plot(self.benchmark, label="buy and hold", color="blue")
+
             plt.legend()
             plt.show()
 
