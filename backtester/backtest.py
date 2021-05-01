@@ -2,9 +2,12 @@ from binance.client import Client
 from dataclasses import asdict
 from datetime import datetime
 import pandas as pd
+import numpy as np
 import pathlib
 import os
 import arrow
+from empyrical import max_drawdown
+from scipy.optimize import minimize
 
 from trader import Trader
 from models import OHLCV
@@ -42,9 +45,41 @@ def fetch_hist(pair: str, start: str, use_cache=True) -> pd.DataFrame:
     return df
 
 
+def find_optimal_params(df: pd.DataFrame):
+    def run_backtest(params):
+        trader = Trader(*params)
+        trader.backtest(df)
+
+        print(trader.balance, params)
+
+        # dont want anything with max drawdown > 50%
+        chg = np.diff(trader.balance_hist) / trader.balance_hist[:-1]
+        if max_drawdown(chg) < -0.5:
+            return 0
+
+        return -trader.balance
+
+    return minimize(
+        run_backtest,
+        [0.4, 0.04],
+        method="SLSQP",
+        options={"eps": 0.001},
+        bounds=((0.1, 1), (0.005, 0.1)),
+    ).x
+
+
 if __name__ == "__main__":
     df = fetch_hist("ETHUSDT", "2017-11-01")
+    df_train = df[df.ts < 1609459200000]
+    df_test = df[df.ts >= 1609459200000]
 
-    trader = Trader(0.6, 0.02, 1)
-    trader.backtest(df)
-    trader.print_stats()
+    params = find_optimal_params(df_train)
+
+    trader = Trader(*params)
+    trader.backtest(df_train)
+    trader.print_stats(plot=False)
+
+    print("test data")
+    trader = Trader(*params)
+    trader.backtest(df_test)
+    trader.print_stats(plot=False)

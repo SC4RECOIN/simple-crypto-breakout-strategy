@@ -33,7 +33,8 @@ class Trader(object):
         b = np.diff(self.benchmark) / self.benchmark[:-1]
         r = self.balance_hist[-1] / self.balance_hist[0] - 1
 
-        print(f"\ntrades:\t\t\t{self.trade_cnt}")
+        print(f"\nk: {self.k}\tleverage: {self.leverage}\tstoploss: {self.stoploss}")
+        print(f"trades:\t\t\t{self.trade_cnt}")
         print(f"max drawdown:\t\t{max_drawdown(chg)*100:.3f}%")
         print(f"return:\t\t\t{r*100:.3f}%")
         print(f"annual return:\t\t{annual_return(chg, annualization=365)*100:.3f}%")
