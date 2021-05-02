@@ -12,6 +12,7 @@ export interface AccountData {
   totalPositionSize: number;
   leverage: number;
   positions: Position[];
+  fills: Fill[];
 }
 
 export interface Position {
@@ -23,6 +24,15 @@ export interface Position {
   cost: number;
   unrealizedPnl: number;
   realizedPnl: number;
+}
+
+export interface Fill {
+  fee: number;
+  feeRate: number;
+  future: string;
+  price: number;
+  side: "buy" | "sell";
+  size: number;
 }
 
 export interface OpenOrder {
