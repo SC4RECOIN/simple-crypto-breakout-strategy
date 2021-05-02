@@ -91,9 +91,9 @@ func (ftx *FTX) Subscribe() {
 
 			case realtime.ORDERS:
 				// buy order has been filled
-				if v.Orders.RemainingSize == 0 && v.Orders.Side == string(models.Buy) {
-					ftx.SetStoploss(v.Orders.AvgFillPrice, v.Orders.FilledSize)
-				}
+				// if v.Orders.RemainingSize == 0 && v.Orders.Side == string(models.Buy) {
+				// 	ftx.SetStoploss(v.Orders.AvgFillPrice, v.Orders.FilledSize)
+				// }
 
 			case realtime.ERROR:
 				fmt.Printf("websocker err: %v\n", v.Results)

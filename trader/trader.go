@@ -64,7 +64,7 @@ func (t *Trader) NewTrade(price float64, ts time.Time) {
 
 		// wait a minute for historical data to update
 		newDay := func() { t.NewDay(false) }
-		time.AfterFunc(time.Minute, newDay)
+		time.AfterFunc(30*time.Second, newDay)
 	}
 }
 
