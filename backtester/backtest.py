@@ -49,19 +49,12 @@ def find_optimal_params(df: pd.DataFrame):
     def run_backtest(params):
         trader = Trader(*params)
         trader.backtest(df)
-
-        print(trader.balance, params)
-
-        # dont want anything with max drawdown > 50%
         chg = np.diff(trader.balance_hist) / trader.balance_hist[:-1]
-        if max_drawdown(chg) < -0.5:
-            return 0
-
-        return -trader.balance
+        return -max_drawdown(chg)
 
     return minimize(
         run_backtest,
-        [0.4, 0.04],
+        [0.8, 0.03],
         method="SLSQP",
         options={"eps": 0.001},
         bounds=((0.1, 1), (0.005, 0.1)),
@@ -73,13 +66,9 @@ if __name__ == "__main__":
     df_train = df[df.ts < 1609459200000]
     df_test = df[df.ts >= 1609459200000]
 
-    params = find_optimal_params(df_train)
-
-    trader = Trader(*params)
+    k = 0.6
+    sl = 0.02
+    leverage = 1
+    trader = Trader(k, sl, leverage)
     trader.backtest(df_train)
-    trader.print_stats(plot=False)
-
-    print("test data")
-    trader = Trader(*params)
-    trader.backtest(df_test)
     trader.print_stats(plot=False)
