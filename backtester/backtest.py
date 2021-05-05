@@ -11,6 +11,7 @@ from scipy.optimize import minimize
 
 from trader import Trader
 from models import OHLCV
+from logger import Logger
 
 
 def fetch_hist(pair: str, start: str, use_cache=True) -> pd.DataFrame:
@@ -63,12 +64,15 @@ def find_optimal_params(df: pd.DataFrame):
 
 if __name__ == "__main__":
     df = fetch_hist("ETHUSDT", "2017-11-01")
+    df = df[df.ts > 1514764800000]
     df_train = df[df.ts < 1609459200000]
     df_test = df[df.ts >= 1609459200000]
+
+    logger = Logger()
 
     k = 0.6
     sl = 0.02
     leverage = 1
-    trader = Trader(k, sl, leverage)
+    trader = Trader(k, sl, leverage, logger=logger)
     trader.backtest(df_train)
     trader.print_stats(plot=False)

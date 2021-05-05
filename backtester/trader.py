@@ -4,14 +4,24 @@ import arrow
 from tqdm import tqdm
 from empyrical import max_drawdown, annual_return
 import matplotlib.pyplot as plt
+from typing import Optional
 
 from models import OHLCV
+from logger import Logger
 
 
 class Trader(object):
     def __init__(
-        self, k=0.6, stoploss=0.02, leverage=1, trading_free=0.0004, slippage=0.0007
+        self,
+        k=0.6,
+        stoploss=0.02,
+        leverage=1,
+        trading_free=0.0004,
+        slippage=0.0007,
+        logger: Optional[Logger] = None,
     ):
+        self.logger = logger
+
         self.k = k
         self.stoploss = stoploss
         self.leverage = leverage
@@ -66,7 +76,6 @@ class Trader(object):
         # new day
         if (ts - self.last_start).days > 0:
             self.close_positions(candle.open)
-            self.balance_hist.append(self.balance)
             self.benchmark.append(candle.close)
 
             # calculate new target
@@ -80,7 +89,7 @@ class Trader(object):
         # not in position and target is set
         if self.entry_price is None and self.target is not None:
             if candle.high > self.target:
-                self.open_position(self.target)
+                self.open_position(self.target, ts)
 
         # in a position and stoploss is hit
         if self.entry_price is not None and candle.low < self.sl:
@@ -93,10 +102,20 @@ class Trader(object):
         self.current_candle.close = candle.close
         self.current_candle.volume += candle.volume
 
-    def open_position(self, price: float):
+    def open_position(self, price: float, ts: arrow.Arrow):
         self.trade_cnt += 1
         self.entry_price = price
         self.target = None
+
+        if self.logger is not None:
+            self.logger.log(
+                {
+                    "event": "open position",
+                    "open": self.current_candle.open,
+                    "entry": f"{self.entry_price:.2f}",
+                },
+                self.last_start,
+            )
 
     def close_positions(self, price: float):
         # not holding a position
@@ -110,7 +129,22 @@ class Trader(object):
 
         # simulate leverage
         self.balance += pos_return * self.balance * self.leverage
+        self.balance_hist.append(self.balance)
         self.entry_price = None
+
+        if self.logger is not None:
+            chg = np.diff(self.balance_hist) / self.balance_hist[:-1]
+
+            self.logger.log(
+                {
+                    "event": "close position",
+                    "price": price,
+                    "return": f"{pos_return*100:.2f}%",
+                    "balance": self.balance,
+                    "max drawdown": f"{max_drawdown(chg)*100:.2f}%",
+                },
+                self.last_start,
+            )
 
     def new_day(self, candle: OHLCV):
         self.last_start = candle.datetime.floor("day")
