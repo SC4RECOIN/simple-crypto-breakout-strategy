@@ -6,12 +6,16 @@ import {
   StatNumber,
   useToast,
   StatHelpText,
+  Alert,
+  AlertIcon,
+  Text,
 } from "@chakra-ui/react";
 import numeral from "numeral";
 import { getAccountInfo, getBuyTarget } from "../api/api";
 import { AccountData } from "../api/types";
 import { useQuery } from "react-query";
 import { isMobile } from "react-device-detect";
+import moment from "moment";
 
 const Stats = () => {
   const accountQuery = useQuery("account-info", getAccountInfo);
@@ -49,42 +53,55 @@ const Stats = () => {
   const statColumns = posReturn ? 5 : 4;
 
   return (
-    <SimpleGrid columns={isMobile ? 2 : statColumns} spacing={6} mb="3rem">
-      <Stat>
-        <StatLabel>Current Price</StatLabel>
-        <StatNumber fontSize="3xl">
-          ${numeral(t?.last).format("0.00")}
-        </StatNumber>
-        <StatHelpText>
-          Target - ${numeral(t?.target).format("0.00")}
-        </StatHelpText>
-      </Stat>
-      <Stat>
-        <StatLabel>Today</StatLabel>
-        <StatNumber fontSize="3xl">{numeral(chg).format("+0.00 %")}</StatNumber>
-        <StatHelpText>{t?.ticker}</StatHelpText>
-      </Stat>
-      <Stat>
-        <StatLabel>Account Value</StatLabel>
-        <StatNumber fontSize="3xl">
-          {numeral(act.totalAccountValue).format("$0,00")}
-        </StatNumber>
-      </Stat>
-      <Stat>
-        <StatLabel>Total Position Size</StatLabel>
-        <StatNumber fontSize="3xl">
-          {numeral(act.totalPositionSize).format("$0,00")}
-        </StatNumber>
-      </Stat>
-      {act.positions?.length > 0 && (
+    <>
+      {moment().diff(t?.lastTime, "minutes") > 1 && (
+        <Alert status="warning" mb="1rem">
+          <AlertIcon />
+          Price data may be outdated
+          <Text ml="5px" opacity="70%">
+            - last updated {t?.lastTime.format("LTS")}
+          </Text>
+        </Alert>
+      )}
+      <SimpleGrid columns={isMobile ? 2 : statColumns} spacing={6} mb="3rem">
         <Stat>
-          <StatLabel>Position Return</StatLabel>
+          <StatLabel>Current Price</StatLabel>
           <StatNumber fontSize="3xl">
-            {numeral(posReturn).format("+0.00 %")}
+            ${numeral(t?.last).format("0.00")}
+          </StatNumber>
+          <StatHelpText>
+            Target - ${numeral(t?.target).format("0.00")}
+          </StatHelpText>
+        </Stat>
+        <Stat>
+          <StatLabel>Today</StatLabel>
+          <StatNumber fontSize="3xl">
+            {numeral(chg).format("+0.00 %")}
+          </StatNumber>
+          <StatHelpText>{t?.ticker}</StatHelpText>
+        </Stat>
+        <Stat>
+          <StatLabel>Account Value</StatLabel>
+          <StatNumber fontSize="3xl">
+            {numeral(act.totalAccountValue).format("$0,00")}
           </StatNumber>
         </Stat>
-      )}
-    </SimpleGrid>
+        <Stat>
+          <StatLabel>Total Position Size</StatLabel>
+          <StatNumber fontSize="3xl">
+            {numeral(act.totalPositionSize).format("$0,00")}
+          </StatNumber>
+        </Stat>
+        {act.positions?.length > 0 && (
+          <Stat>
+            <StatLabel>Position Return</StatLabel>
+            <StatNumber fontSize="3xl">
+              {numeral(posReturn).format("+0.00 %")}
+            </StatNumber>
+          </Stat>
+        )}
+      </SimpleGrid>
+    </>
   );
 };
 

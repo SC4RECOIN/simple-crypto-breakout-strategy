@@ -91,16 +91,17 @@ func (ftx *FTX) Subscribe() {
 
 			case realtime.ORDERS:
 				// buy order has been filled
-				// if v.Orders.RemainingSize == 0 && v.Orders.Side == string(models.Buy) {
-				// 	ftx.SetStoploss(v.Orders.AvgFillPrice, v.Orders.FilledSize)
-				// }
+				if v.Orders.RemainingSize == 0 && v.Orders.Side == string(models.Buy) {
+					fmt.Println("Order filled:", v.Orders.AvgFillPrice, v.Orders.FilledSize, time.Now())
+				}
 
 			case realtime.ERROR:
 				fmt.Printf("websocker err: %v\n", v.Results)
 
 				// ws has be unsubscribed; reconnect
-				fmt.Println("attempting to reconnect in 30sec", time.Now())
-				time.AfterFunc(30*time.Second, ftx.Subscribe)
+				fmt.Println("attempting to reconnect in 1Min", time.Now())
+				ftx.UnSubscribe()
+				time.AfterFunc(time.Minute, ftx.Subscribe)
 			}
 		}
 	}

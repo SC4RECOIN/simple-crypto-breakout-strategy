@@ -1,5 +1,8 @@
+import moment from "moment";
+
 export interface Target {
   last: number;
+  lastTime: moment.Moment;
   target: number;
   open: number;
   ticker: string;

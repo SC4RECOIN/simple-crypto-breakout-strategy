@@ -1,4 +1,5 @@
 import axios from "axios";
+import moment from "moment";
 import {
   AccountData,
   ActiveResponse,
@@ -13,7 +14,9 @@ const instance = axios.create({
 
 export const getBuyTarget = async (): Promise<Target> => {
   const res = await instance.get<Target>("/target");
-  return res.data;
+  const target = res.data;
+  target.lastTime = moment(target.lastTime);
+  return target;
 };
 
 export const getAccountInfo = async (): Promise<AccountData> => {
