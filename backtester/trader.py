@@ -75,8 +75,8 @@ class Trader(object):
 
         # new day
         if (ts - self.last_start).days > 0:
-            self.close_positions(candle.open)
             self.benchmark.append(candle.close)
+            self.close_positions(candle.open)
 
             # calculate new target
             c = self.current_candle
@@ -120,6 +120,8 @@ class Trader(object):
     def close_positions(self, price: float):
         # not holding a position
         if self.entry_price is None:
+            if len(self.benchmark) > len(self.balance_hist):
+                self.balance_hist.append(self.balance)
             return
 
         pos_return = price / self.entry_price - 1
