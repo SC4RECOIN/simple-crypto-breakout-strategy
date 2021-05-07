@@ -18,6 +18,7 @@ class Trader(object):
         leverage=1,
         trading_free=0.0004,
         slippage=0.0007,
+        enable_shorting=False,
         logger: Optional[Logger] = None,
     ):
         self.logger = logger
@@ -25,6 +26,7 @@ class Trader(object):
         self.k = k
         self.stoploss = stoploss
         self.leverage = leverage
+        self.enable_shorting = False
         self.impact = slippage + trading_free
         self.last_start = None
 
@@ -33,10 +35,12 @@ class Trader(object):
         self.benchmark = []
         self.trade_cnt = 0
 
-        self.target = None
+        self.buy_target = None
+        self.sell_target = None
         self.sl = None
         self.current_candle = None
         self.entry_price = None
+        self.long = True
 
     def print_stats(self, plot=True):
         chg = np.diff(self.balance_hist) / self.balance_hist[:-1]
@@ -81,19 +85,33 @@ class Trader(object):
             # calculate new target
             c = self.current_candle
             r = (c.high - c.low) * self.k
-            self.target = c.close + r
-            self.sl = self.target * (1 - self.stoploss)
+            self.buy_target = c.close + r
+            self.sell_target = c.close - r
 
             self.new_day(candle)
 
         # not in position and target is set
-        if self.entry_price is None and self.target is not None:
-            if candle.high > self.target:
-                self.open_position(self.target, ts)
+        if self.entry_price is None and self.buy_target is not None:
+            # long
+            if candle.high > self.buy_target:
+                self.long = True
+                self.sl = self.buy_target * (1 - self.stoploss)
+                self.open_position(self.buy_target, ts)
+
+            # short
+            elif candle.low < self.sell_target and self.enable_shorting:
+                self.long = False
+                self.sl = self.sell_target * (1 + self.stoploss)
+                self.open_position(self.sell_target, ts)
 
         # in a position and stoploss is hit
-        if self.entry_price is not None and candle.low < self.sl:
-            self.close_positions(self.sl)
+        if self.entry_price is not None:
+            # close long
+            if candle.low < self.sl and self.long:
+                self.close_positions(self.sl)
+            # close short
+            elif candle.high > self.sl and not self.long:
+                self.close_positions(self.sl)
 
         # update day candle
         c = self.current_candle
@@ -105,12 +123,14 @@ class Trader(object):
     def open_position(self, price: float, ts: arrow.Arrow):
         self.trade_cnt += 1
         self.entry_price = price
-        self.target = None
+        self.buy_target = None
+        self.sell_target = None
 
         if self.logger is not None:
             self.logger.log(
                 {
                     "event": "open position",
+                    "side": "long" if self.long else "short",
                     "open": self.current_candle.open,
                     "entry": f"{self.entry_price:.2f}",
                 },
@@ -125,6 +145,8 @@ class Trader(object):
             return
 
         pos_return = price / self.entry_price - 1
+        if not self.long:
+            pos_return = self.entry_price / price - 1
 
         # fees & slippage on entry and exit
         pos_return -= self.impact * 2
