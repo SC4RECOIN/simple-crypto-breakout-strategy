@@ -64,7 +64,6 @@ def find_optimal_params(df: pd.DataFrame):
 
 if __name__ == "__main__":
     df = fetch_hist("ETHUSDT", "2017-11-01")
-    df = df[df.ts > 1514764800000]
     df_train = df[df.ts < 1609459200000]
     df_test = df[df.ts >= 1609459200000]
 
