@@ -13,21 +13,21 @@ Catch breakouts by opening positions based on the previous day's range. Populari
 The following are results from a backtest from 2020 with the below config. A simple buy & hold strategy is used as a benchmark.
 
 ```json
-(config = {
+{
   "ticker": "ETH-PERP",
   "k": 0.6,
   "stoploss": 0.02,
   "leverage": 1
-})
+}
 ```
 
 | Metric                 |          |
 | ---------------------- | -------- |
-| trades                 | 113      |
-| max drawdown           | -7.230%  |
-| return                 | 304.713% |
-| benchmark max drawdown | -61.446% |
-| benchmark return       | 471.245% |
+| Trades                 | 113      |
+| Max Drawdown           | -7.230%  |
+| Return                 | 304.713% |
+| Benchmark Max Drawdown | -61.446% |
+| Benchmark Return       | 471.245% |
 
 The model underperforms the benchmark, however, the model is very successful in reducing downside exposure. Increasing the leverage to 2x or 3x will significantly outperform the benchmark while maintaining tolerable drawdowns in portfolio value.
 
