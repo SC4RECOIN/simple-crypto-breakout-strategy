@@ -10,7 +10,7 @@ Catch breakouts by opening positions based on the previous day's range. Populari
 
 ## Backtest
 
-The following are results from a backtest from 2020 with the below config. A simple buy & hold strategy is used as a benchmark.
+The following are results from a backtest from `2020-01-01` to `2020-12-31` with the below config. A simple buy & hold strategy is used as a benchmark.
 
 ```json
 {
