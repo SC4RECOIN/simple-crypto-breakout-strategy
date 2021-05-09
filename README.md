@@ -4,7 +4,7 @@ Catch breakouts by opening positions based on the previous day's range. Populari
 
 ## Strategy
 
-1. Check previous day for positive return
+1. Get previous day's high and low
 2. Set limit order based on previous day's range
 3. Close position at end of day
 
@@ -19,3 +19,11 @@ See `Makefile`
 ```
 
 Navigate to `http://localhost:4000` for dashboard
+
+## Dashboard
+
+The dashboard can be used to monitor your open orders and positions. The bot can also be disable and all positions and orders can be closed manually. Supports mobile view.
+
+| Dashhoard                            |
+| ------------------------------------ |
+| ![alt text](dashboard/dashboard.png) |
