@@ -8,6 +8,29 @@ Catch breakouts by opening positions based on the previous day's range. Populari
 2. Set limit order based on previous day's range
 3. Close position at end of day
 
+## Backtest
+
+The following are results from a backtest from 2020 with the below config. A simple buy & hold strategy is used as a benchmark.
+
+```json
+(config = {
+  "ticker": "ETH-PERP",
+  "k": 0.6,
+  "stoploss": 0.02,
+  "leverage": 1
+})
+```
+
+| Metric                 |          |
+| ---------------------- | -------- |
+| trades                 | 113      |
+| max drawdown           | -7.230%  |
+| return                 | 304.713% |
+| benchmark max drawdown | -61.446% |
+| benchmark return       | 471.245% |
+
+The model underperforms the benchmark, however, the model is very successful in reducing downside exposure. Increasing the leverage to 2x or 3x will significantly outperform the benchmark while maintaining tolerable drawdowns in portfolio value.
+
 ## Docker
 
 Make sure to set `secret` and `key` in `config.json` or pass as env vars.  
