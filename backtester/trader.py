@@ -13,8 +13,10 @@ from logger import Logger
 class Trader(object):
     def __init__(
         self,
-        k=0.6,
+        long_k=0.6,
+        short_k=0.8,
         stoploss=0.02,
+        ma_window=50,
         leverage=1,
         trading_free=0.0004,
         slippage=0.0007,
@@ -23,8 +25,10 @@ class Trader(object):
     ):
         self.logger = logger
 
-        self.k = k
+        self.long_k = long_k
+        self.short_k = short_k
         self.stoploss = stoploss
+        self.ma_window = ma_window
         self.leverage = leverage
         self.enable_shorting = enable_shorting
         self.impact = slippage + trading_free
@@ -47,8 +51,9 @@ class Trader(object):
         chg = np.diff(self.balance_hist) / self.balance_hist[:-1]
         b = np.diff(self.benchmark) / self.benchmark[:-1]
         r = self.balance_hist[-1] / self.balance_hist[0] - 1
+        ks = [self.long_k, self.short_k]
 
-        print(f"\nk: {self.k}\tleverage: {self.leverage}\tstoploss: {self.stoploss}")
+        print(f"\nk: {ks}\tleverage: {self.leverage}\tstoploss: {self.stoploss}")
         print(f"trades:\t\t\t{self.trade_cnt}")
         print(f"max drawdown:\t\t{max_drawdown(chg)*100:.3f}%")
         print(f"return:\t\t\t{r*100:.3f}%")
@@ -86,9 +91,9 @@ class Trader(object):
 
             # calculate new target
             c = self.current_candle
-            r = (c.high - c.low) * self.k
-            self.buy_target = c.close + r
-            self.sell_target = c.close - r
+            r = c.high - c.low
+            self.buy_target = c.close + r * self.long_k
+            self.sell_target = c.close - r * self.short_k
 
             self.new_day(candle)
 
@@ -96,7 +101,7 @@ class Trader(object):
         if self.entry_price is None and self.buy_target is not None:
             # long
             if candle.high > self.buy_target:
-                ma = np.average(self.benchmark[-50:])
+                ma = np.average(self.benchmark[-self.ma_window :])
                 if candle.high > ma or not self.enable_ma:
                     self.long = True
                     self.sl = self.buy_target * (1 - self.stoploss)
@@ -104,7 +109,7 @@ class Trader(object):
 
             # short
             elif candle.low < self.sell_target and self.enable_shorting:
-                ma = np.average(self.benchmark[-50:])
+                ma = np.average(self.benchmark[-self.ma_window :])
                 if candle.low < ma or not self.enable_ma:
                     self.long = False
                     self.sl = self.sell_target * (1 + self.stoploss)

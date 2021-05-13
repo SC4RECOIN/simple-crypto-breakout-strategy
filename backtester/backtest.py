@@ -69,9 +69,14 @@ if __name__ == "__main__":
 
     logger = Logger()
 
-    k = 0.6
-    sl = 0.02
-    leverage = 1
-    trader = Trader(k, sl, leverage, logger=logger)
+    trader = Trader(
+        long_k=0.6,
+        short_k=0.8,
+        stoploss=0.02,
+        ma_window=34,
+        leverage=1,
+        enable_shorting=True,
+        logger=logger,
+    )
     trader.backtest(df_train)
     trader.print_stats(plot=False)
