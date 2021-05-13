@@ -76,6 +76,7 @@ if __name__ == "__main__":
         ma_window=34,
         leverage=1,
         enable_shorting=True,
+        enable_ma=True,
         logger=logger,
     )
     trader.backtest(df_train)

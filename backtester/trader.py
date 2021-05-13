@@ -21,6 +21,7 @@ class Trader(object):
         trading_free=0.0004,
         slippage=0.0007,
         enable_shorting=False,
+        enable_ma=True,
         logger: Optional[Logger] = None,
     ):
         self.logger = logger
@@ -32,7 +33,7 @@ class Trader(object):
         self.leverage = leverage
         self.enable_shorting = enable_shorting
         self.impact = slippage + trading_free
-        self.enable_ma = True
+        self.enable_ma = enable_ma
         self.last_start = None
 
         self.balance = 10000
