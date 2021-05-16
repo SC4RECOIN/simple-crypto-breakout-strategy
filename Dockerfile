@@ -7,7 +7,7 @@ RUN npm run build
 
 
 # Build Golang backend
-FROM golang:1.14 AS go-builder
+FROM golang:1.15 AS go-builder
 WORKDIR /app
 COPY . .
 ENV CGO_ENABLED=0
@@ -15,7 +15,7 @@ RUN go build main.go
 
 
 # Copy files from builders
-FROM golang:1.14-alpine
+FROM golang:1.15-alpine
 
 WORKDIR /app
 COPY --from=react-builder /app/build ./dashboard/build
