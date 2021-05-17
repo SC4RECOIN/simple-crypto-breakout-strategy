@@ -17,10 +17,11 @@ type Trader struct {
 	lastClose time.Time
 	active    bool
 
-	open      *float64
-	target    *float64
-	lastPrice *float64
-	lastTime  *time.Time
+	open        *float64
+	longTarget  *float64
+	shortTarget *float64
+	lastPrice   *float64
+	lastTime    *time.Time
 }
 
 // StartTrader will configure trader, set targets,
@@ -78,14 +79,21 @@ func (t *Trader) NewDay(appStart bool) {
 		log.Fatal(err)
 	}
 
-	tRange := (c.High - c.Low) * t.config.K
-	target := c.Close + tRange
-	t.target = &target
+	tRange := c.High - c.Low
+
+	// long target
+	longTarget := c.Close + tRange*t.config.LongK
+	t.longTarget = &longTarget
+
+	// short target
+	shortTarget := c.Close - tRange*t.config.ShortK
+	t.shortTarget = &shortTarget
+
 	t.open = &c.Close
 
 	// don't close positions if app starting mid-day
 	if appStart && len(t.exchange.AccountInfo.Positions) > 0 {
-		fmt.Println("trader already in position; order will not be placed")
+		fmt.Println("trader already in position; orders will not be placed")
 		return
 	}
 
@@ -96,7 +104,7 @@ func (t *Trader) NewDay(appStart bool) {
 	}
 
 	if appStart && len(*fills) > 0 {
-		fmt.Println("trader already entered position today; order will not be placed")
+		fmt.Println("trader already entered position today; orders will not be placed")
 		return
 	}
 
@@ -104,7 +112,7 @@ func (t *Trader) NewDay(appStart bool) {
 	t.exchange.CloseAll()
 
 	if !t.active {
-		fmt.Println("trader not active; order will not be placed")
+		fmt.Println("trader not active; orders will not be placed")
 		return
 	}
 
@@ -113,15 +121,18 @@ func (t *Trader) NewDay(appStart bool) {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("target: $%.2f\tcurrent ask: $%.2f\n", target, snapshot.Ask)
+	fmt.Printf("long target: $%.2f\tshort target: $%.2f\tcurrent ask: $%.2f\n", longTarget, shortTarget, snapshot.Ask)
 
-	if snapshot.Ask > target {
-		fmt.Println("current price is above target; order will not be placed")
+	if snapshot.Ask > longTarget || snapshot.Ask < shortTarget {
+		fmt.Println("current price is past target; orders will not be placed")
 		return
 	}
 
-	fmt.Printf("opening stop-market order for $%.2f\n", target)
-	if err = t.exchange.PlaceTrigger(target); err != nil {
+	fmt.Printf("opening stop-market order for $%.2f and $%.2f\n", longTarget, shortTarget)
+	if err = t.exchange.PlaceTrigger(longTarget, models.Buy); err != nil {
+		fmt.Println("error placing order:", err.Error())
+	}
+	if err = t.exchange.PlaceTrigger(shortTarget, models.Sell); err != nil {
 		fmt.Println("error placing order:", err.Error())
 	}
 }
@@ -141,9 +152,14 @@ func (t *Trader) CheckForStoploss() {
 			return
 		}
 		if len(*orders) == 0 {
-			fmt.Println("stoploss order has been missed; sending order based on target:", *t.target)
+			fmt.Println("stoploss order has been missed; sending order based on target")
 			pos := positions[0]
-			t.exchange.SetStoploss(*t.target, pos.NetSize)
+
+			if pos.Side == string(models.Buy) {
+				t.exchange.SetStoploss(*t.longTarget, pos.NetSize, models.Sell)
+			} else {
+				t.exchange.SetStoploss(*t.shortTarget, pos.NetSize, models.Buy)
+			}
 		}
 	}
 
@@ -189,11 +205,12 @@ func (t *Trader) LastPrice() (float64, error) {
 
 func (t *Trader) GetTarget() *models.Target {
 	return &models.Target{
-		Last:     *t.lastPrice,
-		LastTime: *t.lastTime,
-		Target:   *t.target,
-		Open:     *t.open,
-		Ticker:   t.config.Ticker,
+		Last:        *t.lastPrice,
+		LastTime:    *t.lastTime,
+		LongTarget:  *t.longTarget,
+		ShortTarget: *t.shortTarget,
+		Open:        *t.open,
+		Ticker:      t.config.Ticker,
 	}
 }
 

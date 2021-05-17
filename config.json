@@ -3,8 +3,10 @@
   "secret": "",
   "subAccount": "BreakoutTrader",
   "ticker": "ETH-PERP",
-  "k": 0.6,
+  "longK": 0.6,
+  "shortK": 0.8,
+  "maWindow": 34,
   "stoploss": 0.02,
-  "leverage": 6,
+  "leverage": 5,
   "autostart": true
 }

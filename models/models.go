@@ -16,7 +16,9 @@ type Configuration struct {
 	Secret     string  `json:"secret"`
 	SubAccount string  `json:"subAccount"`
 	Ticker     string  `json:"ticker"`
-	K          float64 `json:"k"`
+	LongK      float64 `json:"longK"`
+	ShortK     float64 `json:"shortK"`
+	MaWindow   int     `json:"maWindow"`
 	StopLoss   float64 `json:"stoploss"`
 	Leverage   int     `json:"leverage"`
 	AutoStart  bool    `json:"autostart"`
@@ -62,7 +64,7 @@ func (config *Configuration) Validate() error {
 		return errors.New("ticker cannot be empty")
 	}
 
-	if config.K <= 0 {
+	if config.LongK <= 0 || config.ShortK <= 0 {
 		return errors.New("k must be greater than 0")
 	}
 
@@ -96,9 +98,10 @@ type AccountInfoResponse struct {
 }
 
 type Target struct {
-	Last     float64   `json:"last"`
-	LastTime time.Time `json:"lastTime"`
-	Target   float64   `json:"target"`
-	Open     float64   `json:"open"`
-	Ticker   string    `json:"ticker"`
+	Last        float64   `json:"last"`
+	LastTime    time.Time `json:"lastTime"`
+	LongTarget  float64   `json:"longTarget"`
+	ShortTarget float64   `json:"shortTarget"`
+	Open        float64   `json:"open"`
+	Ticker      string    `json:"ticker"`
 }
