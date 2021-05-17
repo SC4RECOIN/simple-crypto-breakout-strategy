@@ -3,7 +3,8 @@ import moment from "moment";
 export interface Target {
   last: number;
   lastTime: moment.Moment;
-  target: number;
+  longTarget: number;
+  shortTarget: number;
   open: number;
   ticker: string;
 }

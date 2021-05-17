@@ -5,7 +5,6 @@ import {
   StatLabel,
   StatNumber,
   useToast,
-  StatHelpText,
   Alert,
   AlertIcon,
   Text,
@@ -69,16 +68,12 @@ const Stats = () => {
           <StatNumber fontSize="3xl">
             ${numeral(t?.last).format("0.00")}
           </StatNumber>
-          <StatHelpText>
-            Target - ${numeral(t?.target).format("0.00")}
-          </StatHelpText>
         </Stat>
         <Stat>
           <StatLabel>Today</StatLabel>
           <StatNumber fontSize="3xl">
             {numeral(chg).format("+0.00 %")}
           </StatNumber>
-          <StatHelpText>{t?.ticker}</StatHelpText>
         </Stat>
         <Stat>
           <StatLabel>Account Value</StatLabel>

@@ -1,30 +1,51 @@
 import React from "react";
-import { Progress, Box, Text, HStack } from "@chakra-ui/react";
+import { Progress, Box, Text, HStack, Spacer } from "@chakra-ui/react";
 import { getBuyTarget } from "../api/api";
 import { useQuery } from "react-query";
 import numeral from "numeral";
+import { isMobile } from "react-device-detect";
 
 const TargetProgress = () => {
   const query = useQuery("target", getBuyTarget);
   const t = query.data;
 
-  let progress = 0;
-  if (t) {
-    const diff = t.target - t.open;
-    const current = t.last - t.open;
-    progress = current / diff;
-  }
+  const longProgress = t ? (t.last - t.open) / (t.longTarget - t.open) : 0;
+  const shortProgress = t ? (t.last - t.open) / (t.shortTarget - t.open) : 0;
+  const fontSize = isMobile ? "sm" : "md";
 
   return (
     <Box>
       <HStack mb="1rem">
-        <Text>Distance to Target</Text>
-        <Text opacity="50%">~ {numeral(progress).format("(0 %)")}</Text>
+        <HStack>
+          <Text fontSize={fontSize}>${t?.shortTarget}</Text>
+          <Text fontSize={fontSize} opacity="50%">
+            ~ {numeral(shortProgress).format("(0 %)")}
+          </Text>
+        </HStack>
+        <Spacer />
+        <Text fontSize={fontSize}>${t?.open}</Text>
+        <Spacer />
+        <HStack>
+          <Text fontSize={fontSize}>${t?.longTarget}</Text>
+          <Text fontSize={fontSize} opacity="50%">
+            ~ {numeral(longProgress).format("(0 %)")}
+          </Text>
+        </HStack>
       </HStack>
       <Progress
-        colorScheme={progress > 1 ? "green" : "blue"}
+        w="50%"
+        float="right"
+        colorScheme={longProgress > 1 ? "blue" : "green"}
         size="lg"
-        value={progress * 100}
+        value={Math.max(0, longProgress * 100)}
+      />
+      <Progress
+        w="50%"
+        float="right"
+        transform="rotate(180deg)"
+        colorScheme={shortProgress > 1 ? "blue" : "red"}
+        size="lg"
+        value={Math.max(0, shortProgress * 100)}
       />
     </Box>
   );
