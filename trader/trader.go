@@ -38,7 +38,7 @@ func StartTrader(config models.Configuration) *Trader {
 		lastClose: now.Truncate(24 * time.Hour),
 		active:    config.AutoStart,
 		canLong:   !config.UseMA,
-		canShort:  !config.UseMA,
+		canShort:  !config.UseMA && config.CanShort,
 	}
 
 	trader.NewDay(true)
@@ -86,7 +86,7 @@ func (t *Trader) NewDay(appStart bool) {
 	// long or short depending on ma
 	if t.config.UseMA {
 		t.canLong = c.Close > ma
-		t.canShort = c.Close < ma
+		t.canShort = c.Close < ma && t.config.CanShort
 	}
 
 	tRange := c.High - c.Low

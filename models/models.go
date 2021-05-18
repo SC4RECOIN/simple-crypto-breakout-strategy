@@ -18,6 +18,7 @@ type Configuration struct {
 	Ticker     string  `json:"ticker"`
 	LongK      float64 `json:"longK"`
 	ShortK     float64 `json:"shortK"`
+	CanShort   bool    `json:"canShort"`
 	MaWindow   int     `json:"maWindow"`
 	UseMA      bool    `json:"useMa"`
 	StopLoss   float64 `json:"stoploss"`
