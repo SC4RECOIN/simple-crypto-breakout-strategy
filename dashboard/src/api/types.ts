@@ -5,6 +5,8 @@ export interface Target {
   lastTime: moment.Moment;
   longTarget: number;
   shortTarget: number;
+  canLong: boolean;
+  canShort: boolean;
   open: number;
   ticker: string;
 }

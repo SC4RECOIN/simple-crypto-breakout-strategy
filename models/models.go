@@ -19,6 +19,7 @@ type Configuration struct {
 	LongK      float64 `json:"longK"`
 	ShortK     float64 `json:"shortK"`
 	MaWindow   int     `json:"maWindow"`
+	UseMA      bool    `json:"useMa"`
 	StopLoss   float64 `json:"stoploss"`
 	Leverage   int     `json:"leverage"`
 	AutoStart  bool    `json:"autostart"`
@@ -102,6 +103,8 @@ type Target struct {
 	LastTime    time.Time `json:"lastTime"`
 	LongTarget  float64   `json:"longTarget"`
 	ShortTarget float64   `json:"shortTarget"`
+	CanLong     bool      `json:"canLong"`
+	CanShort    bool      `json:"canShort"`
 	Open        float64   `json:"open"`
 	Ticker      string    `json:"ticker"`
 }

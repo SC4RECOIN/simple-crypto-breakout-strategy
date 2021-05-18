@@ -6,6 +6,7 @@
   "longK": 0.6,
   "shortK": 0.8,
   "maWindow": 34,
+  "useMa": true, 
   "stoploss": 0.02,
   "leverage": 5,
   "autostart": true
