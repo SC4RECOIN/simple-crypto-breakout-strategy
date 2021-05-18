@@ -20,6 +20,8 @@ type Trader struct {
 	open        *float64
 	longTarget  *float64
 	shortTarget *float64
+	canLong     bool
+	canShort    bool
 	lastPrice   *float64
 	lastTime    *time.Time
 }
@@ -35,6 +37,8 @@ func StartTrader(config models.Configuration) *Trader {
 		exchange:  ftx,
 		lastClose: now.Truncate(24 * time.Hour),
 		active:    config.AutoStart,
+		canLong:   !config.UseMA,
+		canShort:  !config.UseMA,
 	}
 
 	trader.NewDay(true)
@@ -74,9 +78,15 @@ func (t *Trader) NewTrade(price float64, ts time.Time) {
 // the app is just starting and shouldn't close all positions
 func (t *Trader) NewDay(appStart bool) {
 	// get yesterdays candle
-	c, err := t.exchange.GetLastDay()
+	c, ma, err := t.exchange.GetLastDay()
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	// long or short depending on ma
+	if t.config.UseMA {
+		t.canLong = c.Close > ma
+		t.canShort = c.Close < ma
 	}
 
 	tRange := c.High - c.Low
@@ -121,19 +131,25 @@ func (t *Trader) NewDay(appStart bool) {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("long target: $%.2f\tshort target: $%.2f\tcurrent ask: $%.2f\n", longTarget, shortTarget, snapshot.Ask)
+	fmt.Printf("long target: $%.2f\tshort target: $%.2f\tcurrent ask: $%.2f\n\n", longTarget, shortTarget, snapshot.Ask)
 
 	if snapshot.Ask > longTarget || snapshot.Ask < shortTarget {
 		fmt.Println("current price is past target; orders will not be placed")
 		return
 	}
 
-	fmt.Printf("opening stop-market order for $%.2f and $%.2f\n", longTarget, shortTarget)
-	if err = t.exchange.PlaceTrigger(longTarget, models.Buy); err != nil {
-		fmt.Println("error placing order:", err.Error())
+	if t.canLong {
+		fmt.Printf("opening stop-market order for long at $%.2f\n", longTarget)
+		if err = t.exchange.PlaceTrigger(longTarget, models.Buy); err != nil {
+			fmt.Println("error placing order:", err.Error())
+		}
 	}
-	if err = t.exchange.PlaceTrigger(shortTarget, models.Sell); err != nil {
-		fmt.Println("error placing order:", err.Error())
+
+	if t.canShort {
+		fmt.Printf("opening stop-market order for short at $%.2f\n", shortTarget)
+		if err = t.exchange.PlaceTrigger(shortTarget, models.Sell); err != nil {
+			fmt.Println("error placing order:", err.Error())
+		}
 	}
 }
 
@@ -209,6 +225,8 @@ func (t *Trader) GetTarget() *models.Target {
 		LastTime:    *t.lastTime,
 		LongTarget:  *t.longTarget,
 		ShortTarget: *t.shortTarget,
+		CanLong:     t.canLong,
+		CanShort:    t.canShort,
 		Open:        *t.open,
 		Ticker:      t.config.Ticker,
 	}

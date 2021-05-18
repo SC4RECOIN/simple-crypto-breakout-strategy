@@ -191,28 +191,36 @@ func (ftx *FTX) UpdateAccountInfo() {
 
 // GetLastDay will fetch yesterday's DAY candle
 // used for calculating buy targets
-func (ftx *FTX) GetLastDay() (*markets.Candle, error) {
+func (ftx *FTX) GetLastDay() (*markets.Candle, float64, error) {
 	today := time.Now().UTC().Truncate(24 * time.Hour)
 	yesterday := today.Add(-24 * time.Hour).Unix()
 
 	candles, err := ftx.client.Candles(&markets.RequestForCandles{
 		ProductCode: ftx.config.Ticker,
 		Resolution:  86400,
-		Limit:       3,
+		Limit:       ftx.config.MaWindow + 1,
 	})
 
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	for _, candle := range *candles {
+	closeSum := 0.0
+	for i, candle := range *candles {
+		closeSum += candle.Close
+
 		if candle.StartTime.Unix() == yesterday {
-			return &candle, nil
+			// history endpoint returned incorrect number of candles
+			if i+1 != ftx.config.MaWindow {
+				return nil, 0, fmt.Errorf("failed to caculate MA: %d candles", i+1)
+			}
+
+			ma := closeSum / float64(ftx.config.MaWindow)
+			return &candle, ma, nil
 		}
 	}
 
-	err = fmt.Errorf("failed to get last day price: %v", yesterday)
-	return nil, err
+	return nil, 0, fmt.Errorf("failed to get last day price: %v", yesterday)
 }
 
 // UpdateStoploss creates a stoploss for a filled order
