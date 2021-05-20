@@ -11,6 +11,7 @@
     "@testing-library/user-event": "^12.8.3",
     "@types/jest": "^25.2.3",
     "@types/node": "^12.20.10",
+    "@types/numeral": "^2.0.1",
     "@types/react": "^16.14.5",
     "@types/react-dom": "^16.9.12",
     "axios": "^0.21.1",
@@ -24,7 +25,12 @@
     "react-query": "^3.13.12",
     "react-scripts": "4.0.3",
     "typescript": "^3.9.9",
-    "web-vitals": "^0.2.4"
+    "web-vitals": "^0.2.4",
+    "workbox-core": "^5.1.4",
+    "workbox-expiration": "^5.1.4",
+    "workbox-precaching": "^5.1.4",
+    "workbox-routing": "^5.1.4",
+    "workbox-strategies": "^5.1.4"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -47,7 +53,5 @@
       "last 1 safari version"
     ]
   },
-  "devDependencies": {
-    "@types/numeral": "^2.0.1"
-  }
+  "devDependencies": {}
 }
