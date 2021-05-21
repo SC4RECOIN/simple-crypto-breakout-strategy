@@ -36,4 +36,5 @@ ReactDOM.render(
   document.getElementById("root")
 );
 
+window.Notification.requestPermission();
 serviceWorkerRegistration.register();
