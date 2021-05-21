@@ -13,11 +13,6 @@ type Config = {
   onUpdate?: (registration: ServiceWorkerRegistration) => void;
 };
 
-// export function register(config?: Config) {
-//   const swUrl = `${process.env.PUBLIC_URL}/service-worker.js`;
-//   registerValidSW(swUrl, config);
-// }
-
 export function register(config?: Config) {
   if (process.env.NODE_ENV === "production" && "serviceWorker" in navigator) {
     const publicUrl = new URL(process.env.PUBLIC_URL, window.location.href);
