@@ -24,6 +24,7 @@ type Configuration struct {
 	StopLoss   float64 `json:"stoploss"`
 	Leverage   int     `json:"leverage"`
 	AutoStart  bool    `json:"autostart"`
+	WebpushKey string  `json:"webpushKey"`
 }
 
 func (config *Configuration) LoadConfig() error {
@@ -48,9 +49,11 @@ func (config *Configuration) LoadConfig() error {
 	if key := os.Getenv("FTX_KEY"); key != "" && config.Key == "" {
 		config.Key = key
 	}
-
 	if secret := os.Getenv("FTX_SECRET"); secret != "" && config.Secret == "" {
 		config.Secret = secret
+	}
+	if webpushKey := os.Getenv("TRADER_WEBPUSH_KEY"); webpushKey != "" && config.WebpushKey == "" {
+		config.WebpushKey = webpushKey
 	}
 
 	return config.Validate()
