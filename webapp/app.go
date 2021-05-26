@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"encoding/json"
 	"fmt"
 	"sync"
 	"time"
@@ -36,10 +37,18 @@ func sendWebPush() {
 		return
 	}
 
-	message := []byte("Test message from golang!")
+	message := PushMessage{
+		Title: "Approaching Target",
+		Body:  "The price is 5% away from your buy target",
+	}
 
-	resp, err := webpush.SendNotification(message, pushSubscription, &webpush.Options{
-		Subscriber:      "example@example.com",
+	msgBytes, err := json.Marshal(message)
+	if err != nil {
+		fmt.Println("error sending push notification", err)
+		return
+	}
+
+	resp, err := webpush.SendNotification(msgBytes, pushSubscription, &webpush.Options{
 		VAPIDPublicKey:  "BG12KsHIfuMdRqATtRAlE3_8Vfpp7fn68e143bbwJYrON49qLKf4hy5vnti6XKUIlanJ0VOnTT9m4tOrU-RL-h8",
 		VAPIDPrivateKey: *webpushKey,
 		TTL:             30,
@@ -114,9 +123,6 @@ func start() {
 		return c.JSON(&fiber.Map{"message": "all orders and positions closed"})
 	})
 
-	// React dashboard
-	app.Static("/", "./dashboard/build")
-
 	// Push notifications
 	app.Post("/save-subscription", func(c *fiber.Ctx) error {
 		req := webpush.Subscription{}
@@ -129,13 +135,16 @@ func start() {
 
 		pushSubscription = &req
 
-		time.AfterFunc(10*time.Second, sendWebPush)
+		time.AfterFunc(5*time.Second, sendWebPush)
 
 		return c.JSON(&fiber.Map{"success": true})
 	})
 
+	// React dashboard
+	app.Static("/", "./dashboard/build")
+
 	if err := app.Listen(":4000"); err != nil {
-		fmt.Println("failled to start web app:", err)
+		fmt.Println("failed to start web app:", err)
 	}
 }
 

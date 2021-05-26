@@ -55,8 +55,10 @@ self.addEventListener("activate", async () => {
 
 // saveSubscription saves the subscription to the backend
 const saveSubscription = async (subscription: PushSubscription) => {
-  const endpoint = process.env.REACT_APP_URL || window.location.origin;
-  const response = await fetch(`${endpoint}/save-subscription`, {
+  let endpoint = process.env.REACT_APP_URL || window.location.origin;
+  if (!endpoint.endsWith("/")) endpoint += "/";
+
+  const response = await fetch(`${endpoint}save-subscription`, {
     method: "post",
     headers: {
       "Content-Type": "application/json",
@@ -85,8 +87,18 @@ const urlB64ToUint8Array = (base64String: string) => {
 
 self.addEventListener("push", function (event) {
   if (event.data) {
-    console.log("Push event!! ", event.data.text());
-  } else {
-    console.log("Push event but no data");
+    console.log("Push event: ", event.data.json());
+    showLocalNotification(event.data.json(), self.registration);
   }
 });
+
+const showLocalNotification = (
+  message: { title: string; body: string },
+  swRegistration: ServiceWorkerRegistration
+) => {
+  const options = {
+    body: message.body,
+    vibrate: [300, 100, 400],
+  };
+  swRegistration.showNotification(message.title, options);
+};
