@@ -1,4 +1,4 @@
-package webapp
+package models
 
 type SetActiveRequest struct {
 	Active bool `json:"active"`

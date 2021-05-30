@@ -1,10 +1,11 @@
 package webapp
 
 import (
-	"encoding/json"
 	"fmt"
 	"sync"
 
+	"github.com/SC4RECOIN/simple-crypto-breakout-strategy/models"
+	"github.com/SC4RECOIN/simple-crypto-breakout-strategy/notifications"
 	"github.com/SC4RECOIN/simple-crypto-breakout-strategy/trader"
 	webpush "github.com/SherClockHolmes/webpush-go"
 	"github.com/gofiber/fiber/v2"
@@ -12,45 +13,16 @@ import (
 )
 
 var (
-	once             sync.Once
-	app              *fiber.App
-	t                *trader.Trader
-	pushSubscription *webpush.Subscription
-	webpushKey       *string
+	once     sync.Once
+	app      *fiber.App
+	t        *trader.Trader
+	notifier *notifications.Notifications
 )
 
-func Start(ftxTrader *trader.Trader, webPushKey string) {
+func Start(ftxTrader *trader.Trader, n *notifications.Notifications) {
 	t = ftxTrader
-	webpushKey = &webPushKey
+	notifier = n
 	once.Do(start)
-}
-
-func sendWebPush(message PushMessage) {
-	if pushSubscription == nil {
-		fmt.Printf("no active subscription")
-		return
-	}
-
-	if webpushKey == nil && *webpushKey != "" {
-		fmt.Printf("missing private key for webpush")
-		return
-	}
-
-	msgBytes, err := json.Marshal(message)
-	if err != nil {
-		fmt.Println("error sending push notification", err)
-		return
-	}
-
-	resp, err := webpush.SendNotification(msgBytes, pushSubscription, &webpush.Options{
-		VAPIDPublicKey:  "BG12KsHIfuMdRqATtRAlE3_8Vfpp7fn68e143bbwJYrON49qLKf4hy5vnti6XKUIlanJ0VOnTT9m4tOrU-RL-h8",
-		VAPIDPrivateKey: *webpushKey,
-		TTL:             30,
-	})
-	if err != nil {
-		fmt.Printf("error sending webpush notification")
-	}
-	defer resp.Body.Close()
 }
 
 func start() {
@@ -62,7 +34,7 @@ func start() {
 	})
 
 	app.Post("/active", func(c *fiber.Ctx) error {
-		req := SetActiveRequest{}
+		req := models.SetActiveRequest{}
 		if err := c.BodyParser(&req); err != nil {
 			return c.Status(400).JSON(&fiber.Map{
 				"success": false,
@@ -137,7 +109,9 @@ func start() {
 			})
 		}
 
-		pushSubscription = &req
+		if notifier != nil {
+			notifier.SetPushSubscription(&req)
+		}
 
 		return c.JSON(&fiber.Map{"success": true})
 	})
