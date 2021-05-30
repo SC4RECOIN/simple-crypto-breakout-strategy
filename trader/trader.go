@@ -257,7 +257,14 @@ func (t *Trader) GetPositions() (*[]account.Position, error) {
 		return nil, err
 	}
 
-	positions := []account.Position(*resp)
+	// filter out zero sized positions
+	positions := []account.Position{}
+	for _, position := range []account.Position(*resp) {
+		if position.Size > 0 {
+			positions = append(positions, position)
+		}
+	}
+
 	return &positions, nil
 }
 

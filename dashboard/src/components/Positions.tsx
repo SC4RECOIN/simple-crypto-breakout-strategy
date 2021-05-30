@@ -1,8 +1,8 @@
 import React from "react";
 import { SimpleGrid, Box, Text, useToast, Flex } from "@chakra-ui/react";
 import { useQuery } from "react-query";
-import { getAccountInfo, getOpenOrders } from "../api/api";
-import { AccountData, OpenOrder, Position } from "../api/types";
+import { getPositions, getOpenOrders } from "../api/api";
+import { OpenOrder, Position } from "../api/types";
 import { useCardColor } from "./ColorModeSwitcher";
 import { isMobile } from "react-device-detect";
 import numeral from "numeral";
@@ -71,12 +71,11 @@ const EmptyBox = (props: { msg: string }) => {
 };
 
 const Positions = () => {
-  const accountQuery = useQuery("account-info", getAccountInfo);
+  const positionsQuery = useQuery("positions", getPositions);
   const ordersQuery = useQuery("orders", getOpenOrders);
-  const act = accountQuery.data || ({} as AccountData);
   const toast = useToast();
 
-  const positions = act.positions || [];
+  const positions = positionsQuery.data || [];
   const orders = ordersQuery.data || [];
 
   if (ordersQuery.isError) {

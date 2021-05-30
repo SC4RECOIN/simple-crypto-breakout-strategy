@@ -17,7 +17,9 @@ import { isMobile } from "react-device-detect";
 import moment from "moment";
 
 const Stats = () => {
-  const accountQuery = useQuery("account-info", getAccountInfo);
+  const accountQuery = useQuery("account-info", getAccountInfo, {
+    refetchInterval: 60000,
+  });
   const targetQuery = useQuery("target", getBuyTarget);
   const act = accountQuery.data || ({} as AccountData);
   const t = targetQuery.data;

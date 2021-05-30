@@ -30,6 +30,13 @@ export interface Position {
   cost: number;
   unrealizedPnl: number;
   realizedPnl: number;
+
+  collateralUsed?: number;
+  recentAverageOpenPrice?: number;
+  recentPnl?: number;
+  recentBreakEvenPrice?: number;
+  cumulativeBuySize?: number;
+  cumulativeSellSize?: number;
 }
 
 export interface Fill {

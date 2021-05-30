@@ -5,6 +5,7 @@ import {
   ActiveResponse,
   CloseAllResponse,
   OpenOrder,
+  Position,
   Target,
 } from "./types";
 
@@ -21,6 +22,11 @@ export const getBuyTarget = async (): Promise<Target> => {
 
 export const getAccountInfo = async (): Promise<AccountData> => {
   const res = await instance.get<AccountData>("/account-info");
+  return res.data;
+};
+
+export const getPositions = async (): Promise<Position[]> => {
+  const res = await instance.get<Position[]>("/positions");
   return res.data;
 };
 
