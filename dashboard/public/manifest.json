@@ -1,0 +1,26 @@
+{
+  "short_name": "Momentum Trader",
+  "name": "Momentum Crypto Trader",
+  "icons": [
+    {
+      "src": "bitcoin.png",
+      "type": "image/png"
+    },
+    {
+      "src": "logo192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "logo512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#ffffff",
+  "background_color": "#1A202C",
+  "prefer_related_applications": false
+}

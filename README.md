@@ -50,3 +50,5 @@ The dashboard can be used to monitor your open orders and positions. The bot can
 | Dashhoard                            |
 | ------------------------------------ |
 | ![alt text](dashboard/dashboard.png) |
+
+Note: The app is built to be installed as a PWA with push notifications. This functionality will only work on chrome and android.

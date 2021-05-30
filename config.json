@@ -10,5 +10,6 @@
   "useMa": true, 
   "stoploss": 0.02,
   "leverage": 5,
-  "autostart": true
+  "autostart": true,
+  "webpushKey": ""
 }
