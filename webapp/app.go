@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"sync"
-	"time"
 
 	"github.com/SC4RECOIN/simple-crypto-breakout-strategy/trader"
 	webpush "github.com/SherClockHolmes/webpush-go"
@@ -26,7 +25,7 @@ func Start(ftxTrader *trader.Trader, webPushKey string) {
 	once.Do(start)
 }
 
-func sendWebPush() {
+func sendWebPush(message PushMessage) {
 	if pushSubscription == nil {
 		fmt.Printf("no active subscription")
 		return
@@ -35,11 +34,6 @@ func sendWebPush() {
 	if webpushKey == nil && *webpushKey != "" {
 		fmt.Printf("missing private key for webpush")
 		return
-	}
-
-	message := PushMessage{
-		Title: "Approaching Target",
-		Body:  "The price is 5% away from your buy target",
 	}
 
 	msgBytes, err := json.Marshal(message)
@@ -134,8 +128,6 @@ func start() {
 		}
 
 		pushSubscription = &req
-
-		time.AfterFunc(5*time.Second, sendWebPush)
 
 		return c.JSON(&fiber.Map{"success": true})
 	})
