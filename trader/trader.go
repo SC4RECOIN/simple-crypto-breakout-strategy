@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"sync"
 	"time"
 
 	"github.com/SC4RECOIN/simple-crypto-breakout-strategy/exchange"
@@ -30,6 +31,10 @@ type Trader struct {
 	// track orders that have been sent
 	longOrder  *orders.ResponseForPlaceTriggerOrder
 	shortOrder *orders.ResponseForPlaceTriggerOrder
+
+	// `NewTrade` should only be called by
+	// one routine at a time
+	tradeLock sync.Mutex
 }
 
 // StartTrader will configure trader, set targets,
@@ -61,6 +66,9 @@ func StartTrader(config models.Configuration) *Trader {
 // NewTrade is called by the ws trade feed and
 // updates the last price and checks for a new day
 func (t *Trader) NewTrade(price float64, ts time.Time) {
+	t.tradeLock.Lock()
+	defer t.tradeLock.Unlock()
+
 	t.lastPrice = &price
 	t.lastTime = &ts
 
