@@ -94,6 +94,16 @@ func start() {
 		return c.JSON(orders)
 	})
 
+	app.Get("/positions", func(c *fiber.Ctx) error {
+		positions, err := t.GetPositions()
+		if err != nil {
+			c.Status(500)
+			return c.JSON(errMsg(err))
+		}
+
+		return c.JSON(positions)
+	})
+
 	app.Get("/last-price", func(c *fiber.Ctx) error {
 		price, err := t.LastPrice()
 		if err != nil {

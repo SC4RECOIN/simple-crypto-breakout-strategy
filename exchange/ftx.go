@@ -70,7 +70,6 @@ func (ftx *FTX) Subscribe() {
 
 	ch := make(chan realtime.Response)
 	go realtime.Connect(ctx, ch, []string{"trades"}, []string{c.Ticker}, nil)
-	go realtime.ConnectForPrivate(ctx, ch, c.Key, c.Secret, []string{"fills", "orders"}, nil, c.SubAccount)
 
 	for {
 		select {
@@ -80,19 +79,6 @@ func (ftx *FTX) Subscribe() {
 				for _, trade := range v.Trades {
 					ftx.LastPrice = &trade.Price
 					ftx.listener(trade.Price, trade.Time)
-				}
-
-			case realtime.FILLS:
-				price := v.Fills.Price
-				size := v.Fills.Size
-				if size > 0 {
-					fmt.Printf("order fill:\tprice: %.2f\tsize: %.4f\n", price, size)
-				}
-
-			case realtime.ORDERS:
-				// buy order has been filled
-				if v.Orders.RemainingSize == 0 && v.Orders.Side == string(models.Buy) {
-					fmt.Println("Order filled:", v.Orders.AvgFillPrice, v.Orders.FilledSize, time.Now())
 				}
 
 			case realtime.ERROR:
@@ -126,9 +112,15 @@ func (ftx *FTX) CloseAll() error {
 	ftx.UpdateAccountInfo()
 
 	for _, pos := range ftx.AccountInfo.Positions {
+
+		side := models.Buy
+		if pos.Side == string(models.Buy) {
+			side = models.Sell
+		}
+
 		_, err := ftx.client.PlaceOrder(&orders.RequestForPlaceOrder{
 			Market:     pos.Future,
-			Side:       "sell",
+			Side:       string(side),
 			Type:       "market",
 			Size:       pos.Size,
 			ReduceOnly: true,
@@ -143,13 +135,13 @@ func (ftx *FTX) CloseAll() error {
 }
 
 // PlaceTrigger is used for placing orders for price target
-func (ftx *FTX) PlaceTrigger(target float64, side models.Side) error {
+func (ftx *FTX) PlaceTrigger(target float64, side models.Side) (*orders.ResponseForPlaceTriggerOrder, error) {
 	ftx.UpdateAccountInfo()
 
 	collateral := ftx.AccountInfo.FreeCollateral * float64(ftx.config.Leverage)
 	size := collateral / target
 
-	_, err := ftx.client.PlaceTriggerOrder(&orders.RequestForPlaceTriggerOrder{
+	resp, err := ftx.client.PlaceTriggerOrder(&orders.RequestForPlaceTriggerOrder{
 		Market:       ftx.config.Ticker,
 		Side:         string(side),
 		Type:         "stop",
@@ -158,10 +150,10 @@ func (ftx *FTX) PlaceTrigger(target float64, side models.Side) error {
 	})
 
 	if err != nil {
-		return fmt.Errorf("failed to create trigger order for: $%.2f\t%v", target, err)
+		return nil, fmt.Errorf("failed to create trigger order for: $%.2f\t%v", target, err)
 	}
 
-	return nil
+	return resp, nil
 }
 
 func (ftx *FTX) UpdateAccountInfo() {
@@ -223,16 +215,9 @@ func (ftx *FTX) GetLastDay() (*markets.Candle, float64, error) {
 	return nil, 0, fmt.Errorf("failed to get last day price: %v", yesterday)
 }
 
-// UpdateStoploss creates a stoploss for a filled order
-func (ftx *FTX) SetStoploss(fillPrice, fillSize float64, side models.Side) {
-	stopPrice := fillPrice * (1 - ftx.config.StopLoss)
-
-	// stop-loss for short
-	if side == models.Buy {
-		stopPrice = fillPrice * (1 + ftx.config.StopLoss)
-	}
-
-	if fillSize == 0 {
+// UpdateStoploss creates a stoploss for an order
+func (ftx *FTX) SetStoploss(stopPrice, size float64, side models.Side) {
+	if size == 0 {
 		fmt.Println("Cannot set stoploss for order size of 0")
 		return
 	}
@@ -242,12 +227,12 @@ func (ftx *FTX) SetStoploss(fillPrice, fillSize float64, side models.Side) {
 		Side:         string(side),
 		Type:         "stop",
 		TriggerPrice: stopPrice,
-		Size:         fillSize,
+		Size:         size,
 		ReduceOnly:   true,
 	})
 
 	if err != nil {
-		fmt.Printf("failed to create stoploss for %.4f fill (%s)", fillSize, side)
+		fmt.Printf("failed to create stoploss for %.4f fill (%s)", size, side)
 	}
 }
 
@@ -266,6 +251,10 @@ func (ftx *FTX) GetMarket() (*markets.Market, error) {
 
 func (ftx *FTX) GetOpenOrders() (*orders.ResponseForOpenTriggerOrders, error) {
 	return ftx.client.OpenTriggerOrders(&orders.RequestForOpenTriggerOrders{})
+}
+
+func (ftx *FTX) GetPositions() (*account.ResponseForPositions, error) {
+	return ftx.client.Positions(&account.RequestForPositions{ShowAvgPrice: true})
 }
 
 // GetFills returns all fills since start of day

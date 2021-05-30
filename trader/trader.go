@@ -8,6 +8,7 @@ import (
 
 	"github.com/SC4RECOIN/simple-crypto-breakout-strategy/exchange"
 	"github.com/SC4RECOIN/simple-crypto-breakout-strategy/models"
+	"github.com/go-numb/go-ftx/rest/private/account"
 	"github.com/go-numb/go-ftx/rest/private/orders"
 )
 
@@ -15,6 +16,7 @@ type Trader struct {
 	config    models.Configuration
 	exchange  exchange.FTX
 	lastClose time.Time
+	nextClose time.Time
 	active    bool
 
 	open        *float64
@@ -24,6 +26,10 @@ type Trader struct {
 	canShort    bool
 	lastPrice   *float64
 	lastTime    *time.Time
+
+	// track orders that have been sent
+	longOrder  *orders.ResponseForPlaceTriggerOrder
+	shortOrder *orders.ResponseForPlaceTriggerOrder
 }
 
 // StartTrader will configure trader, set targets,
@@ -31,27 +37,23 @@ type Trader struct {
 func StartTrader(config models.Configuration) *Trader {
 	ftx := exchange.New(config)
 	now := time.Now().UTC()
+	lastClose := now.Truncate(24 * time.Hour)
+	nextClose := lastClose.Add(time.Hour * 24)
 
 	trader := Trader{
 		config:    config,
 		exchange:  ftx,
-		lastClose: now.Truncate(24 * time.Hour),
+		lastClose: lastClose,
+		nextClose: nextClose,
 		active:    config.AutoStart,
 		canLong:   !config.UseMA,
 		canShort:  !config.UseMA && config.CanShort,
 	}
 
+	// subscribe to websocket
 	trader.NewDay(true)
 	ftx.GetTrades(trader.NewTrade)
 	go ftx.Subscribe()
-
-	// periodically check that stoplosses are in place
-	ticker := time.NewTicker(5 * time.Minute)
-	go func() {
-		for range ticker.C {
-			trader.CheckForStoploss()
-		}
-	}()
 
 	return &trader
 }
@@ -59,17 +61,31 @@ func StartTrader(config models.Configuration) *Trader {
 // NewTrade is called by the ws trade feed and
 // updates the last price and checks for a new day
 func (t *Trader) NewTrade(price float64, ts time.Time) {
-	timeDelta := ts.Sub(t.lastClose)
 	t.lastPrice = &price
 	t.lastTime = &ts
 
-	if timeDelta > time.Hour*24 {
+	if ts.After(t.nextClose) {
 		fmt.Println("new day")
-		t.lastClose = t.lastClose.Add(time.Hour * 24)
+		t.lastClose = t.nextClose
+		t.nextClose = t.lastClose.Add(time.Hour * 24)
 
 		// wait a minute for historical data to update
 		newDay := func() { t.NewDay(false) }
 		time.AfterFunc(30*time.Second, newDay)
+	}
+
+	// check if triggers should have been hit
+	if t.longTarget != nil && price > *t.longTarget {
+		if t.longOrder != nil {
+			stopPrice := *t.longTarget * (1 - t.config.StopLoss)
+			t.exchange.SetStoploss(stopPrice, t.longOrder.Size, models.Sell)
+		}
+	}
+	if t.shortTarget != nil && price < *t.shortTarget {
+		if t.shortOrder != nil {
+			stopPrice := *t.longTarget * (1 + t.config.StopLoss)
+			t.exchange.SetStoploss(stopPrice, t.shortOrder.Size, models.Buy)
+		}
 	}
 }
 
@@ -140,45 +156,21 @@ func (t *Trader) NewDay(appStart bool) {
 
 	if t.canLong {
 		fmt.Printf("opening stop-market order for long at $%.2f\n", longTarget)
-		if err = t.exchange.PlaceTrigger(longTarget, models.Buy); err != nil {
+		if resp, err := t.exchange.PlaceTrigger(longTarget, models.Buy); err == nil {
+			t.longOrder = resp
+		} else {
 			fmt.Println("error placing order:", err.Error())
 		}
 	}
 
 	if t.canShort {
 		fmt.Printf("opening stop-market order for short at $%.2f\n", shortTarget)
-		if err = t.exchange.PlaceTrigger(shortTarget, models.Sell); err != nil {
+		if resp, err := t.exchange.PlaceTrigger(shortTarget, models.Sell); err == nil {
+			t.shortOrder = resp
+		} else {
 			fmt.Println("error placing order:", err.Error())
 		}
 	}
-}
-
-// CheckForStoploss check if positions have a corresponding
-// stoploss. A position may not have a stoploss if a fill is
-// missed by the websocket or fails in some other way.
-func (t *Trader) CheckForStoploss() {
-	t.exchange.UpdateAccountInfo()
-	positions := t.exchange.AccountInfo.Positions
-
-	if len(positions) > 0 {
-		// check if there is an open order
-		orders, err := t.GetOpenOrders()
-		if err != nil {
-			fmt.Println("an error occured fetching open orders for stoploss check")
-			return
-		}
-		if len(*orders) == 0 {
-			fmt.Println("stoploss order has been missed; sending order based on target")
-			pos := positions[0]
-
-			if pos.Side == string(models.Buy) {
-				t.exchange.SetStoploss(*t.longTarget, pos.NetSize, models.Sell)
-			} else {
-				t.exchange.SetStoploss(*t.shortTarget, pos.NetSize, models.Buy)
-			}
-		}
-	}
-
 }
 
 func (t *Trader) GetAccountInfo() (*models.AccountInfoResponse, error) {
@@ -209,6 +201,16 @@ func (t *Trader) GetOpenOrders() (*[]orders.OpenTriggerOrder, error) {
 
 	orders := []orders.OpenTriggerOrder(*resp)
 	return &orders, nil
+}
+
+func (t *Trader) GetPositions() (*[]account.Position, error) {
+	resp, err := t.exchange.GetPositions()
+	if err != nil {
+		return nil, err
+	}
+
+	positions := []account.Position(*resp)
+	return &positions, nil
 }
 
 func (t *Trader) LastPrice() (float64, error) {
