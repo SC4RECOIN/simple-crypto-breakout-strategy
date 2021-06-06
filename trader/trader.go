@@ -30,8 +30,10 @@ type Trader struct {
 	lastTime    *time.Time
 
 	// track orders that have been sent
-	longOrder  *orders.ResponseForPlaceTriggerOrder
-	shortOrder *orders.ResponseForPlaceTriggerOrder
+	longOrder    *orders.ResponseForPlaceTriggerOrder
+	shortOrder   *orders.ResponseForPlaceTriggerOrder
+	longStopSet  bool
+	shortStopSet bool
 
 	notifier                         *notifications.Notifications
 	approachingOrderNotificationSent bool
@@ -89,9 +91,12 @@ func (t *Trader) NewTrade(price float64, ts time.Time) {
 
 	// check if triggers should have been hit
 	if t.longTarget != nil && price > *t.longTarget {
-		if t.longOrder != nil {
+		if t.longOrder != nil && !t.longStopSet {
 			stopPrice := *t.longTarget * (1 - t.config.StopLoss)
-			t.exchange.SetStoploss(stopPrice, t.longOrder.Size, models.Sell)
+			_, err := t.exchange.SetStoploss(stopPrice, t.longOrder.Size, models.Sell)
+			if err == nil {
+				t.longStopSet = true
+			}
 		}
 
 		t.notifier.SendWebPush(models.PushMessage{
@@ -100,9 +105,12 @@ func (t *Trader) NewTrade(price float64, ts time.Time) {
 		})
 	}
 	if t.shortTarget != nil && price < *t.shortTarget {
-		if t.shortOrder != nil {
-			stopPrice := *t.longTarget * (1 + t.config.StopLoss)
-			t.exchange.SetStoploss(stopPrice, t.shortOrder.Size, models.Buy)
+		if t.shortOrder != nil && !t.shortStopSet {
+			stopPrice := *t.shortTarget * (1 + t.config.StopLoss)
+			_, err := t.exchange.SetStoploss(stopPrice, t.shortOrder.Size, models.Buy)
+			if err == nil {
+				t.shortStopSet = true
+			}
 		}
 
 		t.notifier.SendWebPush(models.PushMessage{

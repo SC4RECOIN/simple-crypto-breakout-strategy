@@ -216,13 +216,12 @@ func (ftx *FTX) GetLastDay() (*markets.Candle, float64, error) {
 }
 
 // UpdateStoploss creates a stoploss for an order
-func (ftx *FTX) SetStoploss(stopPrice, size float64, side models.Side) {
+func (ftx *FTX) SetStoploss(stopPrice, size float64, side models.Side) (*orders.ResponseForPlaceTriggerOrder, error) {
 	if size == 0 {
-		fmt.Println("Cannot set stoploss for order size of 0")
-		return
+		return nil, errors.New("Cannot set stoploss for order size of 0")
 	}
 
-	_, err := ftx.client.PlaceTriggerOrder(&orders.RequestForPlaceTriggerOrder{
+	resp, err := ftx.client.PlaceTriggerOrder(&orders.RequestForPlaceTriggerOrder{
 		Market:       ftx.config.Ticker,
 		Side:         string(side),
 		Type:         "stop",
@@ -232,8 +231,10 @@ func (ftx *FTX) SetStoploss(stopPrice, size float64, side models.Side) {
 	})
 
 	if err != nil {
-		fmt.Printf("failed to create stoploss for %.4f fill (%s)", size, side)
+		return nil, fmt.Errorf("failed to create stoploss for %.4f fill (%s)", size, side)
 	}
+
+	return resp, nil
 }
 
 func (ftx *FTX) GetMarket() (*markets.Market, error) {
