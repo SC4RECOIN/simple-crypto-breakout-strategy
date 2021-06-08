@@ -36,6 +36,7 @@ type Trader struct {
 	shortStopSet bool
 
 	notifier                         *notifications.Notifications
+	targetHitNotificationSent        bool
 	approachingOrderNotificationSent bool
 
 	// `NewTrade` should only be called by
@@ -99,10 +100,13 @@ func (t *Trader) NewTrade(price float64, ts time.Time) {
 			}
 		}
 
-		t.notifier.SendWebPush(models.PushMessage{
-			Title: "Long target hit",
-			Body:  fmt.Sprintf("The price exceeded the target of $%.2f", *t.longTarget),
-		})
+		if !t.targetHitNotificationSent {
+			t.notifier.SendWebPush(models.PushMessage{
+				Title: "Long target hit",
+				Body:  fmt.Sprintf("The price exceeded the target of $%.2f", *t.longTarget),
+			})
+			t.targetHitNotificationSent = true
+		}
 	}
 	if t.shortTarget != nil && price < *t.shortTarget {
 		if t.shortOrder != nil && !t.shortStopSet {
@@ -112,11 +116,13 @@ func (t *Trader) NewTrade(price float64, ts time.Time) {
 				t.shortStopSet = true
 			}
 		}
-
-		t.notifier.SendWebPush(models.PushMessage{
-			Title: "Short target hit",
-			Body:  fmt.Sprintf("The price exceeded the target of $%.2f", *t.shortTarget),
-		})
+		if !t.targetHitNotificationSent {
+			t.notifier.SendWebPush(models.PushMessage{
+				Title: "Short target hit",
+				Body:  fmt.Sprintf("The price exceeded the target of $%.2f", *t.shortTarget),
+			})
+			t.targetHitNotificationSent = true
+		}
 	}
 
 	// check if close to hitting order
