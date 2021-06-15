@@ -101,18 +101,32 @@ class Trader(object):
             # long
             if candle.high > self.buy_target:
                 ma = np.average(self.benchmark[-self.ma_window :])
-                if candle.high > ma or not self.enable_ma:
+
+                if not self.enable_ma:
                     self.long = True
                     self.sl = self.buy_target * (1 - self.stoploss)
                     self.open_position(self.buy_target, ts)
+                elif candle.high > ma:
+                    self.long = True
+                    # buy price cannot be below ma
+                    price = max(self.buy_target, ma)
+                    self.sl = price * (1 - self.stoploss)
+                    self.open_position(price, ts)
 
             # short
             elif candle.low < self.sell_target and self.enable_shorting:
                 ma = np.average(self.benchmark[-self.ma_window :])
-                if candle.low < ma or not self.enable_ma:
+
+                if not self.enable_ma:
                     self.long = False
                     self.sl = self.sell_target * (1 + self.stoploss)
                     self.open_position(self.sell_target, ts)
+                elif candle.low < ma:
+                    self.long = False
+                    # sell price cannot be above ma
+                    price = min(self.sell_target, ma)
+                    self.sl = price * (1 + self.stoploss)
+                    self.open_position(price, ts)
 
         # in a position and stoploss is hit
         if self.entry_price is not None:
