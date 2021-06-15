@@ -9,7 +9,7 @@
   "maWindow": 34,
   "useMa": true, 
   "stoploss": 0.02,
-  "leverage": 3,
+  "leverage": 5,
   "autostart": true,
   "webpushKey": ""
 }
