@@ -6,7 +6,7 @@
   "longK": 0.6,
   "shortK": 0.8,
   "canShort": true,
-  "maWindow": 34,
+  "maWindow": 21,
   "useMa": true, 
   "stoploss": 0.02,
   "leverage": 5,
