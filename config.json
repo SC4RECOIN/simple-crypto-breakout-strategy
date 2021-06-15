@@ -8,7 +8,7 @@
   "canShort": true,
   "maWindow": 21,
   "useMa": true, 
-  "stoploss": 0.02,
+  "stoploss": 0.015,
   "leverage": 5,
   "autostart": true,
   "webpushKey": ""
