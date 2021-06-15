@@ -106,7 +106,8 @@ class Trader(object):
                     self.long = True
                     self.sl = self.buy_target * (1 - self.stoploss)
                     self.open_position(self.buy_target, ts)
-                elif candle.high > ma:
+                # candle must open above ma
+                elif self.current_candle.open > ma:
                     self.long = True
                     # buy price cannot be below ma
                     price = max(self.buy_target, ma)
@@ -121,7 +122,8 @@ class Trader(object):
                     self.long = False
                     self.sl = self.sell_target * (1 + self.stoploss)
                     self.open_position(self.sell_target, ts)
-                elif candle.low < ma:
+                # candle must open below ma
+                elif self.current_candle.open < ma:
                     self.long = False
                     # sell price cannot be above ma
                     price = min(self.sell_target, ma)
