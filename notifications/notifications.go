@@ -24,6 +24,8 @@ func (n *Notifications) SetPushSubscription(subscription *webpush.Subscription) 
 }
 
 func (n *Notifications) SendWebPush(message models.PushMessage) {
+	fmt.Println("Sending notification:", message.Body)
+
 	if n.pushSubscription == nil {
 		fmt.Printf("no active subscription")
 		return

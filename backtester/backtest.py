@@ -72,9 +72,9 @@ if __name__ == "__main__":
     trader = Trader(
         long_k=0.6,
         short_k=0.8,
-        stoploss=0.02,
-        ma_window=34,
-        leverage=1,
+        stoploss=0.015,
+        ma_window=21,
+        leverage=7,
         enable_shorting=True,
         enable_ma=True,
         logger=logger,
