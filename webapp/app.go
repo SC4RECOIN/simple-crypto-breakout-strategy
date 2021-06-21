@@ -5,23 +5,19 @@ import (
 	"sync"
 
 	"github.com/SC4RECOIN/simple-crypto-breakout-strategy/models"
-	"github.com/SC4RECOIN/simple-crypto-breakout-strategy/notifications"
 	"github.com/SC4RECOIN/simple-crypto-breakout-strategy/trader"
-	webpush "github.com/SherClockHolmes/webpush-go"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 )
 
 var (
-	once     sync.Once
-	app      *fiber.App
-	t        *trader.Trader
-	notifier *notifications.Notifications
+	once sync.Once
+	app  *fiber.App
+	t    *trader.Trader
 )
 
-func Start(ftxTrader *trader.Trader, n *notifications.Notifications) {
+func Start(ftxTrader *trader.Trader) {
 	t = ftxTrader
-	notifier = n
 	once.Do(start)
 }
 
@@ -97,23 +93,6 @@ func start() {
 		}
 
 		return c.JSON(&fiber.Map{"message": "all orders and positions closed"})
-	})
-
-	// Push notifications
-	app.Post("/save-subscription", func(c *fiber.Ctx) error {
-		req := webpush.Subscription{}
-		if err := c.BodyParser(&req); err != nil {
-			return c.Status(400).JSON(&fiber.Map{
-				"success": false,
-				"error":   err,
-			})
-		}
-
-		if notifier != nil {
-			notifier.SetPushSubscription(&req)
-		}
-
-		return c.JSON(&fiber.Map{"success": true})
 	})
 
 	// React dashboard
