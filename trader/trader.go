@@ -153,7 +153,8 @@ func (t *Trader) NewDay(appStart bool) {
 		return
 	}
 
-	fmt.Printf("long target: $%.2f\tshort target: $%.2f\tcurrent ask: $%.2f\n\n", longTarget, shortTarget, snapshot.Ask)
+	msg := fmt.Sprintf("long target: $%.2f\tshort target: $%.2f\tcurrent ask: $%.2f\n\n", longTarget, shortTarget, snapshot.Ask)
+	slack.LogInfo(msg)
 
 	if snapshot.Ask > longTarget || snapshot.Ask < shortTarget {
 		slack.LogInfo("current price is past target; orders will not be placed")
@@ -163,14 +164,14 @@ func (t *Trader) NewDay(appStart bool) {
 	if t.canLong {
 		fmt.Printf("opening stop-market order for long at $%.2f\n", longTarget)
 		if order, _ := t.exchange.PlaceTrigger(longTarget, models.Buy); err == nil {
-			t.shortStopLossSize = &order.Size
+			t.longStopLossSize = &order.Size
 		}
 	}
 
 	if t.canShort {
 		fmt.Printf("opening stop-market order for short at $%.2f\n", shortTarget)
 		if order, _ := t.exchange.PlaceTrigger(shortTarget, models.Sell); err == nil {
-			t.longStopLossSize = &order.Size
+			t.shortStopLossSize = &order.Size
 		}
 	}
 }
