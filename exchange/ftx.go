@@ -71,6 +71,7 @@ func (ftx *FTX) Subscribe() {
 
 	ch := make(chan realtime.Response)
 	go realtime.Connect(ctx, ch, []string{"trades"}, []string{c.Ticker}, nil)
+	go realtime.ConnectForPrivate(ctx, ch, c.Key, c.Secret, []string{"fills", "orders"}, nil, c.SubAccount)
 
 	for {
 		select {
@@ -81,6 +82,12 @@ func (ftx *FTX) Subscribe() {
 					ftx.LastPrice = &trade.Price
 					ftx.listener(trade.Price, trade.Time)
 				}
+
+			case realtime.FILLS:
+				slack.LogInfo(fmt.Sprintf("order fill:\tprice: %.2f\tsize: %.4f\n", v.Fills.Price, v.Fills.Size))
+
+			case realtime.ORDERS:
+				slack.LogInfo(fmt.Sprintf("Order filled:\t%.2f filled @ %.2f\t%v", v.Orders.FilledSize, v.Orders.AvgFillPrice, time.Now()))
 
 			case realtime.ERROR:
 				fmt.Printf("websocker err: %v\n", v.Results)
