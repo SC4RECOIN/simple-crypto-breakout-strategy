@@ -3,12 +3,12 @@ package trader
 import (
 	"errors"
 	"fmt"
-	"log"
 	"sync"
 	"time"
 
 	"github.com/SC4RECOIN/simple-crypto-breakout-strategy/exchange"
 	"github.com/SC4RECOIN/simple-crypto-breakout-strategy/models"
+	"github.com/SC4RECOIN/simple-crypto-breakout-strategy/slack"
 	"github.com/go-numb/go-ftx/rest/private/account"
 	"github.com/go-numb/go-ftx/rest/private/orders"
 )
@@ -28,8 +28,8 @@ type Trader struct {
 	lastPrice   *float64
 	lastTime    *time.Time
 
-	longSize  float64
-	shortSize float64
+	longStopLossSize  *float64
+	shortStopLossSize *float64
 
 	tradeLock sync.Mutex
 }
@@ -70,7 +70,7 @@ func (t *Trader) NewTrade(price float64, ts time.Time) {
 	t.lastTime = &ts
 
 	if ts.After(t.nextClose) {
-		fmt.Println("new day")
+		slack.LogInfo("new day")
 		t.lastClose = t.nextClose
 		t.nextClose = t.lastClose.Add(time.Hour * 24)
 
@@ -80,17 +80,15 @@ func (t *Trader) NewTrade(price float64, ts time.Time) {
 	}
 
 	// check if triggers should have been hit
-	if t.canLong && price > *t.longTarget {
+	if t.longStopLossSize != nil && price > *t.longTarget {
 		stopPrice := *t.longTarget * (1 - t.config.StopLoss)
-		if _, err := t.exchange.SetStoploss(stopPrice, t.longSize, models.Sell); err != nil {
-			fmt.Println("error setting stop loss: ", err.Error())
-		}
+		t.exchange.SetStoploss(stopPrice, *t.longStopLossSize, models.Sell)
+		t.longStopLossSize = nil
 	}
-	if t.canShort && price < *t.shortTarget {
+	if t.shortStopLossSize != nil && price < *t.shortTarget {
 		stopPrice := *t.shortTarget * (1 + t.config.StopLoss)
-		if _, err := t.exchange.SetStoploss(stopPrice, t.shortSize, models.Buy); err != nil {
-			fmt.Println("error setting stop loss: ", err.Error())
-		}
+		t.exchange.SetStoploss(stopPrice, *t.shortStopLossSize, models.Buy)
+		t.shortStopLossSize = nil
 	}
 }
 
@@ -101,7 +99,8 @@ func (t *Trader) NewDay(appStart bool) {
 	// get yesterdays candle
 	c, ma, err := t.exchange.GetLastDay()
 	if err != nil {
-		log.Fatal(err)
+		slack.LogError(err)
+		return
 	}
 
 	// long or short depending on ma
@@ -124,18 +123,19 @@ func (t *Trader) NewDay(appStart bool) {
 
 	// don't close positions if app starting mid-day
 	if appStart && len(t.exchange.AccountInfo.Positions) > 0 {
-		fmt.Println("trader already in position; orders will not be placed")
+		slack.LogInfo("trader already in position; orders will not be placed")
 		return
 	}
 
 	// a position has been open and closed already
 	fills, err := t.exchange.GetFills()
 	if err != nil {
-		log.Fatal(err)
+		slack.LogError(err)
+		return
 	}
 
 	if appStart && len(*fills) > 0 {
-		fmt.Println("trader already entered position today; orders will not be placed")
+		slack.LogInfo("trader already entered position today; orders will not be placed")
 		return
 	}
 
@@ -143,37 +143,34 @@ func (t *Trader) NewDay(appStart bool) {
 	t.exchange.CloseAll()
 
 	if !t.active {
-		fmt.Println("trader not active; orders will not be placed")
+		slack.LogInfo("trader not active; orders will not be placed")
 		return
 	}
 
 	snapshot, err := t.exchange.GetMarket()
 	if err != nil {
-		log.Fatal(err)
+		slack.LogError(err)
+		return
 	}
 
 	fmt.Printf("long target: $%.2f\tshort target: $%.2f\tcurrent ask: $%.2f\n\n", longTarget, shortTarget, snapshot.Ask)
 
 	if snapshot.Ask > longTarget || snapshot.Ask < shortTarget {
-		fmt.Println("current price is past target; orders will not be placed")
+		slack.LogInfo("current price is past target; orders will not be placed")
 		return
 	}
 
 	if t.canLong {
 		fmt.Printf("opening stop-market order for long at $%.2f\n", longTarget)
-		if order, err := t.exchange.PlaceTrigger(longTarget, models.Buy); err != nil {
-			fmt.Println("error placing long order:", err.Error())
-		} else {
-			t.longSize = order.Size
+		if order, _ := t.exchange.PlaceTrigger(longTarget, models.Buy); err == nil {
+			t.shortStopLossSize = &order.Size
 		}
 	}
 
 	if t.canShort {
 		fmt.Printf("opening stop-market order for short at $%.2f\n", shortTarget)
-		if order, err := t.exchange.PlaceTrigger(shortTarget, models.Sell); err != nil {
-			fmt.Println("error placing short order:", err.Error())
-		} else {
-			t.shortSize = order.Size
+		if order, _ := t.exchange.PlaceTrigger(shortTarget, models.Sell); err == nil {
+			t.longStopLossSize = &order.Size
 		}
 	}
 }

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/SC4RECOIN/simple-crypto-breakout-strategy/models"
+	"github.com/SC4RECOIN/simple-crypto-breakout-strategy/slack"
 	"github.com/go-numb/go-ftx/auth"
 	"github.com/go-numb/go-ftx/realtime"
 	"github.com/go-numb/go-ftx/rest"
@@ -150,9 +151,12 @@ func (ftx *FTX) PlaceTrigger(target float64, side models.Side) (*orders.Response
 	})
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to create trigger order for: $%.2f\t%v", target, err)
+		err := fmt.Errorf("failed to create trigger order for: $%.2f\t%v", target, err)
+		slack.LogError(err)
+		return nil, err
 	}
 
+	slack.OrderNotification(resp)
 	return resp, nil
 }
 
@@ -231,9 +235,11 @@ func (ftx *FTX) SetStoploss(stopPrice, size float64, side models.Side) (*orders.
 	})
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to create stoploss for %.4f fill (%s)", size, side)
+		slack.LogError(fmt.Errorf("error setting stop loss: %v", err))
+		return nil, err
 	}
 
+	slack.OrderNotification(resp)
 	return resp, nil
 }
 

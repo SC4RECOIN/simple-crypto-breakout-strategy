@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/SC4RECOIN/simple-crypto-breakout-strategy/models"
+	"github.com/go-numb/go-ftx/rest/private/orders"
 	"github.com/slack-go/slack"
 )
 
@@ -40,7 +41,7 @@ func (c *slackBot) PostMessage(channelID models.ChannelID, message string) {
 	fmt.Println("Slack message sent: ", message)
 }
 
-func (c *slackBot) TargetNotification(side models.Side, target float64) {
-	message := fmt.Sprintf("Setting %s target for %.2f\n", side, target)
-	c.PostMessage(models.TradeTargetsChannel, message)
+func OrderNotification(order *orders.ResponseForPlaceTriggerOrder) {
+	message := fmt.Sprintf("Sending %s trigger for $%.2f\n", order.Side, order.TriggerPrice)
+	DefaultClient().PostMessage(models.TradeTargetsChannel, message)
 }
