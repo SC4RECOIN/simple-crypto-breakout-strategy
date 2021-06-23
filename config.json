@@ -9,6 +9,6 @@
   "maWindow": 21,
   "useMa": true, 
   "stoploss": 0.015,
-  "leverage": 5,
+  "leverage": 6,
   "autostart": true
 }

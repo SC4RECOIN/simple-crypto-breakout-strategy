@@ -22,21 +22,25 @@ export interface AccountData {
 }
 
 export interface Position {
-  future: string;
-  side: string;
+  collateralUsed: number; 
+  cost: number;
+  cumulativeSellSize: number; 
   entryPrice: number;
   estimatedLiquidationPrice: number;
-  size: number;
-  cost: number;
-  unrealizedPnl: number;
-  realizedPnl: number;
-
-  collateralUsed?: number;
-  recentAverageOpenPrice?: number;
-  recentPnl?: number;
-  recentBreakEvenPrice?: number;
-  cumulativeBuySize?: number;
-  cumulativeSellSize?: number;
+  future: string;
+  initialMarginRequirement: number;
+  longOrderSize: number;
+  maintenanceMarginRequirement: number;
+  netSize: number; 
+  openSize: number;
+  realizedPnl: number; 
+  recentAverageOpenPrice: number;
+  recentBreakEvenPrice: number;
+  recentPnl: number;
+  shortOrderSize: number; 
+  side: string; 
+  size: number; 
+  unrealizedPnl: number; 
 }
 
 export interface Fill {

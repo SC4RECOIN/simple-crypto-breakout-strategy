@@ -18,7 +18,7 @@ const Row = (props: { label: string; value: string | number }) => (
 
 const PositionBox = (props: Position) => {
   const bg = useCardColor();
-  const fmt = (value: number) => numeral(value).format("$0.00");
+  const fmt = (value: number) => numeral(value).format("($0.00)");
   return (
     <SimpleGrid
       columns={1}
@@ -29,12 +29,15 @@ const PositionBox = (props: Position) => {
       mb="2rem"
     >
       <Row label="Future" value={props.future} />
-      <Row label="Side" value={props.side} />
+      <Row label="Side" value={props.side.toUpperCase()} />
+      <Row label="Entry Price" value={fmt(props.entryPrice)} />
       <Row
         label="Liquidation Price"
         value={fmt(props.estimatedLiquidationPrice)}
       />
       <Row label="Size" value={props.size} />
+      <Row label="Cost" value={fmt(props.cost)} />
+      <Row label="Profit" value={fmt(props.recentPnl)} />
     </SimpleGrid>
   );
 };
@@ -51,12 +54,13 @@ const OrderBox = (props: OpenOrder) => {
       mb="2rem"
     >
       <Row label="Future" value={props.future} />
-      <Row label="Side" value={props.side} />
+      <Row label="Side" value={props.side.toUpperCase()} />
       <Row label="Size" value={props.size} />
       <Row
         label="Trigger Price"
         value={numeral(props.triggerPrice).format("$0.00")}
       />
+      <Row label="Reduce Only" value={props.reduceOnly.toString()} />
     </SimpleGrid>
   );
 };
