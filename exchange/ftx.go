@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/SC4RECOIN/simple-crypto-breakout-strategy/models"
@@ -84,10 +85,10 @@ func (ftx *FTX) Subscribe() {
 				}
 
 			case realtime.FILLS:
-				slack.LogInfo(fmt.Sprintf("order fill:\tprice: %.2f\tsize: %.4f\n", v.Fills.Price, v.Fills.Size))
+				slack.OrderFilled(fmt.Sprintf("order fill:\tprice: %.2f\tsize: %.4f\n", v.Fills.Price, v.Fills.Size))
 
 			case realtime.ORDERS:
-				slack.LogInfo(fmt.Sprintf("Order filled:\t%.2f filled @ %.2f\t%v", v.Orders.FilledSize, v.Orders.AvgFillPrice, time.Now()))
+				slack.OrderFilled(fmt.Sprintf("order filled:\t%.2f filled @ %.2f\t%v", v.Orders.FilledSize, v.Orders.AvgFillPrice, time.Now()))
 
 			case realtime.ERROR:
 				fmt.Printf("websocker err: %v\n", v.Results)
@@ -112,9 +113,12 @@ func (ftx *FTX) GetTrades(cb func(price float64, ts time.Time)) {
 
 // CloseAll will close all open orders and positions
 func (ftx *FTX) CloseAll() error {
+	errorsMsgs := []string{}
+
 	_, err := ftx.client.CancelAll(&orders.RequestForCancelAll{})
 	if err != nil {
-		return errors.New("failed to cancel open orders")
+		errorsMsgs = append(errorsMsgs, "failed to cancel open orders")
+		slack.LogError(errors.New("failed to cancel open orders"))
 	}
 
 	ftx.UpdateAccountInfo()
@@ -135,10 +139,17 @@ func (ftx *FTX) CloseAll() error {
 		})
 
 		if err != nil {
-			return fmt.Errorf("failed to close position: %+v", pos)
+			err := fmt.Errorf("failed to close position: %+v\nerror: %w", pos, err)
+			errorsMsgs = append(errorsMsgs, err.Error())
+			slack.LogError(err)
 		}
 	}
 
+	if len(errorsMsgs) > 0 {
+		return fmt.Errorf(strings.Join(errorsMsgs, "\n"))
+	}
+
+	slack.LogInfo("all positions closed")
 	return nil
 }
 

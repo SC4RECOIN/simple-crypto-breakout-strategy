@@ -250,6 +250,7 @@ func (t *Trader) IsActive() bool {
 
 // SetActive will turn the trader on/off
 func (t *Trader) SetActive(value bool) {
+	slack.LogInfo(fmt.Sprintf("setting trader to %t", value))
 	t.active = value
 }
 

@@ -12,7 +12,7 @@ func LogInfo(message string) {
 }
 
 func LogError(err error) {
-	message := fmt.Sprintf("An error occured: %v\n", err.Error())
+	message := fmt.Sprintf("`An error occured: %v`\n", err.Error())
 	fmt.Println("error:", message)
 	DefaultClient().PostMessage(models.LogChannel, message)
 }

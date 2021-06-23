@@ -42,6 +42,10 @@ func (c *slackBot) PostMessage(channelID models.ChannelID, message string) {
 }
 
 func OrderNotification(order *orders.ResponseForPlaceTriggerOrder) {
-	message := fmt.Sprintf("Sending %s trigger for $%.2f\n", order.Side, order.TriggerPrice)
+	message := fmt.Sprintf("Sending %s trigger for $%.2f\n>%+v\n", order.Side, order.TriggerPrice, order)
 	DefaultClient().PostMessage(models.TradeTargetsChannel, message)
+}
+
+func OrderFilled(message string) {
+	DefaultClient().PostMessage(models.OrderFilledChannel, message)
 }
