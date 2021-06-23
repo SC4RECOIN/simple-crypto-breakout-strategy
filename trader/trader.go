@@ -3,13 +3,12 @@ package trader
 import (
 	"errors"
 	"fmt"
-	"log"
 	"sync"
 	"time"
 
 	"github.com/SC4RECOIN/simple-crypto-breakout-strategy/exchange"
 	"github.com/SC4RECOIN/simple-crypto-breakout-strategy/models"
-	"github.com/SC4RECOIN/simple-crypto-breakout-strategy/notifications"
+	"github.com/SC4RECOIN/simple-crypto-breakout-strategy/slack"
 	"github.com/go-numb/go-ftx/rest/private/account"
 	"github.com/go-numb/go-ftx/rest/private/orders"
 )
@@ -29,24 +28,15 @@ type Trader struct {
 	lastPrice   *float64
 	lastTime    *time.Time
 
-	// track orders that have been sent
-	longOrder    *orders.ResponseForPlaceTriggerOrder
-	shortOrder   *orders.ResponseForPlaceTriggerOrder
-	longStopSet  bool
-	shortStopSet bool
+	longStopLossSize  *float64
+	shortStopLossSize *float64
 
-	notifier                         *notifications.Notifications
-	targetHitNotificationSent        bool
-	approachingOrderNotificationSent bool
-
-	// `NewTrade` should only be called by
-	// one routine at a time
 	tradeLock sync.Mutex
 }
 
 // StartTrader will configure trader, set targets,
 // subscribe to ws, and send orders if active
-func StartTrader(config models.Configuration, n *notifications.Notifications) *Trader {
+func StartTrader(config models.Configuration) *Trader {
 	ftx := exchange.New(config)
 	now := time.Now().UTC()
 	lastClose := now.Truncate(24 * time.Hour)
@@ -60,7 +50,6 @@ func StartTrader(config models.Configuration, n *notifications.Notifications) *T
 		active:    config.AutoStart,
 		canLong:   !config.UseMA,
 		canShort:  !config.UseMA && config.CanShort,
-		notifier:  n,
 	}
 
 	// subscribe to websocket
@@ -81,7 +70,7 @@ func (t *Trader) NewTrade(price float64, ts time.Time) {
 	t.lastTime = &ts
 
 	if ts.After(t.nextClose) {
-		fmt.Println("new day")
+		slack.LogInfo("new day")
 		t.lastClose = t.nextClose
 		t.nextClose = t.lastClose.Add(time.Hour * 24)
 
@@ -91,58 +80,15 @@ func (t *Trader) NewTrade(price float64, ts time.Time) {
 	}
 
 	// check if triggers should have been hit
-	if t.longTarget != nil && price > *t.longTarget {
-		if t.longOrder != nil && !t.longStopSet {
-			stopPrice := *t.longTarget * (1 - t.config.StopLoss)
-			_, err := t.exchange.SetStoploss(stopPrice, t.longOrder.Size, models.Sell)
-			if err == nil {
-				t.longStopSet = true
-			}
-		}
-
-		if !t.targetHitNotificationSent {
-			t.notifier.SendWebPush(models.PushMessage{
-				Title: "Long target hit",
-				Body:  fmt.Sprintf("The price exceeded the target of $%.2f", *t.longTarget),
-			})
-			t.targetHitNotificationSent = true
-		}
+	if t.longStopLossSize != nil && price > *t.longTarget {
+		stopPrice := *t.longTarget * (1 - t.config.StopLoss)
+		t.exchange.SetStoploss(stopPrice, *t.longStopLossSize, models.Sell)
+		t.longStopLossSize = nil
 	}
-	if t.shortTarget != nil && price < *t.shortTarget {
-		if t.shortOrder != nil && !t.shortStopSet {
-			stopPrice := *t.shortTarget * (1 + t.config.StopLoss)
-			_, err := t.exchange.SetStoploss(stopPrice, t.shortOrder.Size, models.Buy)
-			if err == nil {
-				t.shortStopSet = true
-			}
-		}
-		if !t.targetHitNotificationSent {
-			t.notifier.SendWebPush(models.PushMessage{
-				Title: "Short target hit",
-				Body:  fmt.Sprintf("The price exceeded the target of $%.2f", *t.shortTarget),
-			})
-			t.targetHitNotificationSent = true
-		}
-	}
-
-	// check if close to hitting order
-	if !t.approachingOrderNotificationSent {
-
-		if t.longTarget != nil && price / *t.longTarget > 0.99 {
-			t.notifier.SendWebPush(models.PushMessage{
-				Title: "Approaching long target",
-				Body:  fmt.Sprintf("The price is approaching the target of $%.2f", *t.shortTarget),
-			})
-			t.approachingOrderNotificationSent = true
-		}
-
-		if t.shortTarget != nil && price / *t.shortTarget < 1.01 {
-			t.notifier.SendWebPush(models.PushMessage{
-				Title: "Approaching short target",
-				Body:  fmt.Sprintf("The price is approaching the target of $%.2f", *t.shortTarget),
-			})
-			t.approachingOrderNotificationSent = true
-		}
+	if t.shortStopLossSize != nil && price < *t.shortTarget {
+		stopPrice := *t.shortTarget * (1 + t.config.StopLoss)
+		t.exchange.SetStoploss(stopPrice, *t.shortStopLossSize, models.Buy)
+		t.shortStopLossSize = nil
 	}
 }
 
@@ -150,15 +96,11 @@ func (t *Trader) NewTrade(price float64, ts time.Time) {
 // buy target. `appStart` can be set to `true` if
 // the app is just starting and shouldn't close all positions
 func (t *Trader) NewDay(appStart bool) {
-	// reset
-	t.longOrder = nil
-	t.shortOrder = nil
-	t.approachingOrderNotificationSent = false
-
 	// get yesterdays candle
 	c, ma, err := t.exchange.GetLastDay()
 	if err != nil {
-		log.Fatal(err)
+		slack.LogError(err)
+		return
 	}
 
 	// long or short depending on ma
@@ -181,18 +123,19 @@ func (t *Trader) NewDay(appStart bool) {
 
 	// don't close positions if app starting mid-day
 	if appStart && len(t.exchange.AccountInfo.Positions) > 0 {
-		fmt.Println("trader already in position; orders will not be placed")
+		slack.LogInfo("trader already in position; orders will not be placed")
 		return
 	}
 
 	// a position has been open and closed already
 	fills, err := t.exchange.GetFills()
 	if err != nil {
-		log.Fatal(err)
+		slack.LogError(err)
+		return
 	}
 
 	if appStart && len(*fills) > 0 {
-		fmt.Println("trader already entered position today; orders will not be placed")
+		slack.LogInfo("trader already entered position today; orders will not be placed")
 		return
 	}
 
@@ -200,37 +143,35 @@ func (t *Trader) NewDay(appStart bool) {
 	t.exchange.CloseAll()
 
 	if !t.active {
-		fmt.Println("trader not active; orders will not be placed")
+		slack.LogInfo("trader not active; orders will not be placed")
 		return
 	}
 
 	snapshot, err := t.exchange.GetMarket()
 	if err != nil {
-		log.Fatal(err)
+		slack.LogError(err)
+		return
 	}
 
-	fmt.Printf("long target: $%.2f\tshort target: $%.2f\tcurrent ask: $%.2f\n\n", longTarget, shortTarget, snapshot.Ask)
+	msg := fmt.Sprintf("long target: $%.2f\tshort target: $%.2f\tcurrent ask: $%.2f\n\n", longTarget, shortTarget, snapshot.Ask)
+	slack.LogInfo(msg)
 
 	if snapshot.Ask > longTarget || snapshot.Ask < shortTarget {
-		fmt.Println("current price is past target; orders will not be placed")
+		slack.LogInfo("current price is past target; orders will not be placed")
 		return
 	}
 
 	if t.canLong {
 		fmt.Printf("opening stop-market order for long at $%.2f\n", longTarget)
-		if resp, err := t.exchange.PlaceTrigger(longTarget, models.Buy); err == nil {
-			t.longOrder = resp
-		} else {
-			fmt.Println("error placing order:", err.Error())
+		if order, _ := t.exchange.PlaceTrigger(longTarget, models.Buy); err == nil {
+			t.longStopLossSize = &order.Size
 		}
 	}
 
 	if t.canShort {
 		fmt.Printf("opening stop-market order for short at $%.2f\n", shortTarget)
-		if resp, err := t.exchange.PlaceTrigger(shortTarget, models.Sell); err == nil {
-			t.shortOrder = resp
-		} else {
-			fmt.Println("error placing order:", err.Error())
+		if order, _ := t.exchange.PlaceTrigger(shortTarget, models.Sell); err == nil {
+			t.shortStopLossSize = &order.Size
 		}
 	}
 }
@@ -309,6 +250,7 @@ func (t *Trader) IsActive() bool {
 
 // SetActive will turn the trader on/off
 func (t *Trader) SetActive(value bool) {
+	slack.LogInfo(fmt.Sprintf("setting trader to %t", value))
 	t.active = value
 }
 

@@ -8,7 +8,6 @@ import Positions from "./components/Positions";
 import { isMobile } from "react-device-detect";
 import Stats from "./components/Stats";
 import SafetySwitches from "./components/Safety";
-import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -35,6 +34,3 @@ ReactDOM.render(
   </React.StrictMode>,
   document.getElementById("root")
 );
-
-window.Notification.requestPermission();
-serviceWorkerRegistration.register();

@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/SC4RECOIN/simple-crypto-breakout-strategy/models"
-	"github.com/SC4RECOIN/simple-crypto-breakout-strategy/notifications"
 	"github.com/SC4RECOIN/simple-crypto-breakout-strategy/trader"
 	"github.com/SC4RECOIN/simple-crypto-breakout-strategy/webapp"
 )
@@ -16,7 +15,6 @@ func main() {
 		return
 	}
 
-	notifier := notifications.New(&config.WebpushKey)
-	trader := trader.StartTrader(config, notifier)
-	webapp.Start(trader, notifier)
+	trader := trader.StartTrader(config)
+	webapp.Start(trader)
 }
