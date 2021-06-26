@@ -58,11 +58,11 @@ func (c *slackBot) PostMessage(channelID models.ChannelID, message string) {
 
 func OrderNotification(order *orders.ResponseForPlaceTriggerOrder) {
 	orderStr := "error marshaling order"
-	if s, err := json.MarshalIndent(order, "", "\t"); err != nil {
+	if s, err := json.MarshalIndent(order, "", "\t"); err == nil {
 		orderStr = string(s)
 	}
 
-	message := fmt.Sprintf("Sending %s trigger order for $%.2f\n>%s\n", order.Side, order.TriggerPrice, orderStr)
+	message := fmt.Sprintf("Sending %s trigger order for $%.2f\n```%s```\n", order.Side, order.TriggerPrice, orderStr)
 	DefaultClient().PostMessage(models.TradeTargetsChannel, message)
 }
 

@@ -146,7 +146,7 @@ func (ftx *FTX) CloseAll() error {
 		return fmt.Errorf(strings.Join(errorsMsgs, "\n"))
 	}
 
-	slack.LogInfo("all positions closed")
+	slack.LogInfo("All positions closed")
 	return nil
 }
 

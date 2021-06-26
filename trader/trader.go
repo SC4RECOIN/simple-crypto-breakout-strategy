@@ -124,7 +124,7 @@ func (t *Trader) NewDay(appStart bool) {
 
 	// don't close positions if app starting mid-day
 	if appStart && len(t.exchange.AccountInfo.Positions) > 0 {
-		slack.LogInfo("trader already in position; orders will not be placed")
+		slack.LogInfo("Trader already in position; orders will not be placed")
 		return
 	}
 
@@ -136,15 +136,15 @@ func (t *Trader) NewDay(appStart bool) {
 	}
 
 	if appStart && len(*fills) > 0 {
-		slack.LogInfo("trader already entered position today; orders will not be placed")
+		slack.LogInfo("Trader already entered position today; orders will not be placed")
 		return
 	}
 
-	fmt.Println("closing all positions")
+	fmt.Println("Closing all positions")
 	t.exchange.CloseAll()
 
 	if !t.active {
-		slack.LogInfo("trader not active; orders will not be placed")
+		slack.LogInfo("Trader not active; orders will not be placed")
 		return
 	}
 
@@ -161,8 +161,8 @@ func (t *Trader) NewDay(appStart bool) {
 		"canShort":     t.canShort,
 		"canLong":      t.canLong,
 	}
-	if s, err := json.MarshalIndent(msg, "", "\t"); err != nil {
-		slack.LogInfo(">" + string(s))
+	if s, err := json.MarshalIndent(msg, "", "\t"); err == nil {
+		slack.LogInfo("```" + string(s) + "```")
 	}
 
 	if snapshot.Ask > longTarget || snapshot.Ask < shortTarget {
