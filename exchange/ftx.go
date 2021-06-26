@@ -84,11 +84,8 @@ func (ftx *FTX) Subscribe() {
 					ftx.listener(trade.Price, trade.Time)
 				}
 
-			case realtime.FILLS:
-				slack.OrderFilled(fmt.Sprintf("order fill:\tprice: %.2f\tsize: %.4f\n", v.Fills.Price, v.Fills.Size))
-
 			case realtime.ORDERS:
-				slack.OrderFilled(fmt.Sprintf("order filled:\t%.2f filled @ %.2f\t%v", v.Orders.FilledSize, v.Orders.AvgFillPrice, time.Now()))
+				slack.OrderFilled(fmt.Sprintf("Order filled\n>%.2f %s @ %.2f", v.Orders.FilledSize, v.Orders.Market, v.Orders.AvgFillPrice))
 
 			case realtime.ERROR:
 				fmt.Printf("websocker err: %v\n", v.Results)

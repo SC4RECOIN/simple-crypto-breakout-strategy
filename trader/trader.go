@@ -1,6 +1,7 @@
 package trader
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"sync"
@@ -70,7 +71,7 @@ func (t *Trader) NewTrade(price float64, ts time.Time) {
 	t.lastTime = &ts
 
 	if ts.After(t.nextClose) {
-		slack.LogInfo("new day")
+		slack.NewDay()
 		t.lastClose = t.nextClose
 		t.nextClose = t.lastClose.Add(time.Hour * 24)
 
@@ -153,8 +154,16 @@ func (t *Trader) NewDay(appStart bool) {
 		return
 	}
 
-	msg := fmt.Sprintf("long target: $%.2f\tshort target: $%.2f\tcurrent ask: $%.2f\n\n", longTarget, shortTarget, snapshot.Ask)
-	slack.LogInfo(msg)
+	msg := map[string]interface{}{
+		"long target":  longTarget,
+		"short target": shortTarget,
+		"last":         snapshot.Last,
+		"canShort":     t.canShort,
+		"canLong":      t.canLong,
+	}
+	if s, err := json.MarshalIndent(msg, "", "\t"); err != nil {
+		slack.LogInfo(">" + string(s))
+	}
 
 	if snapshot.Ask > longTarget || snapshot.Ask < shortTarget {
 		slack.LogInfo("current price is past target; orders will not be placed")
