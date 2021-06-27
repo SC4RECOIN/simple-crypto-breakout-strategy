@@ -47,7 +47,7 @@ func (c *slackBot) PostMessage(channelID models.ChannelID, message string) {
 	}
 
 	// prepend subaccount name
-	message = fmt.Sprintf("**%s** %s", c.subAccount, message)
+	message = fmt.Sprintf("*%s* %s", c.subAccount, message)
 
 	if _, _, err := c.client.PostMessage(
 		string(channelID),

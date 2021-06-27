@@ -17,7 +17,9 @@ func main() {
 		return
 	}
 
-	if s, err := json.MarshalIndent(config, "", "\t"); err == nil {
+	configCpy := config
+	configCpy.Secret = ""
+	if s, err := json.MarshalIndent(configCpy, "", "\t"); err == nil {
 		msg := fmt.Sprintf("Config loaded:\n```%s```", string(s))
 		slack.LogInfo(msg)
 	}
