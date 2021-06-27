@@ -63,21 +63,19 @@ def find_optimal_params(df: pd.DataFrame):
 
 
 if __name__ == "__main__":
-    df = fetch_hist("ETHUSDT", "2017-11-01")
-    df_train = df[df.ts < 1609459200000]
-    df_test = df[df.ts >= 1609459200000]
+    df = fetch_hist("ETHUSDT", "2019-01-01")
 
     logger = Logger()
 
     trader = Trader(
         long_k=0.6,
         short_k=0.8,
-        stoploss=0.015,
-        ma_window=21,
-        leverage=7,
-        enable_shorting=True,
-        enable_ma=True,
+        stoploss=0.02,
+        ma_window=34,
+        leverage=5,
+        enable_shorting=False,
+        enable_ma=False,
         logger=logger,
     )
-    trader.backtest(df_train)
+    trader.backtest(df)
     trader.print_stats(plot=False)
