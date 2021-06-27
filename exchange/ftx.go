@@ -72,7 +72,7 @@ func (ftx *FTX) Subscribe() {
 
 	ch := make(chan realtime.Response)
 	go realtime.Connect(ctx, ch, []string{"trades"}, []string{c.Ticker}, nil)
-	go realtime.ConnectForPrivate(ctx, ch, c.Key, c.Secret, []string{"fills", "orders"}, nil, c.SubAccount)
+	go realtime.ConnectForPrivate(ctx, ch, c.Key, c.Secret, []string{"orders"}, nil, c.SubAccount)
 
 	for {
 		select {
