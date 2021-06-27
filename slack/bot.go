@@ -12,8 +12,9 @@ import (
 )
 
 type slackBot struct {
-	client *slack.Client
-	sent   map[string]struct{}
+	client     *slack.Client
+	sent       map[string]struct{}
+	subAccount string
 }
 
 var (
@@ -25,8 +26,9 @@ func DefaultClient() *slackBot {
 	once.Do(func() {
 		if key := os.Getenv("SLACK_BOT_KEY"); key != "" {
 			bot = slackBot{
-				client: slack.New(key),
-				sent:   make(map[string]struct{}),
+				client:     slack.New(key),
+				sent:       make(map[string]struct{}),
+				subAccount: os.Getenv("subAccount"),
 			}
 		}
 	})
@@ -43,6 +45,9 @@ func (c *slackBot) PostMessage(channelID models.ChannelID, message string) {
 	if _, ok := c.sent[message]; ok {
 		return
 	}
+
+	// prepend subaccount name
+	message = fmt.Sprintf("**%s** %s", c.subAccount, message)
 
 	if _, _, err := c.client.PostMessage(
 		string(channelID),

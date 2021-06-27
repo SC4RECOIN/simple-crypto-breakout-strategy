@@ -52,6 +52,8 @@ func (config *Configuration) LoadConfig() error {
 		config.Secret = secret
 	}
 
+	os.Setenv("subAccount", config.SubAccount)
+
 	return config.Validate()
 }
 
