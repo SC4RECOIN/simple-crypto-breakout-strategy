@@ -15,6 +15,7 @@ type slackBot struct {
 	client     *slack.Client
 	sent       map[string]struct{}
 	subAccount string
+	m          sync.Mutex
 }
 
 var (
@@ -41,6 +42,9 @@ func (c *slackBot) reset() {
 }
 
 func (c *slackBot) PostMessage(channelID models.ChannelID, message string) {
+	c.m.Lock()
+	defer c.m.Unlock()
+
 	// message was already sent
 	if _, ok := c.sent[message]; ok {
 		return
