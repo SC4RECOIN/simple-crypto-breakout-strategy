@@ -16,6 +16,7 @@ import (
 	"github.com/go-numb/go-ftx/rest/private/fills"
 	"github.com/go-numb/go-ftx/rest/private/orders"
 	"github.com/go-numb/go-ftx/rest/public/markets"
+	"github.com/matryer/resync"
 )
 
 type FTX struct {
@@ -27,6 +28,8 @@ type FTX struct {
 	AccountInfo *models.AccountInfo
 	LastPrice   *float64
 }
+
+var once resync.Once
 
 func New(config models.Configuration) FTX {
 	// rest client
@@ -88,12 +91,13 @@ func (ftx *FTX) Subscribe() {
 				slack.OrderFilled(fmt.Sprintf("Order filled\n>%.2f %s @ %.2f", v.Orders.FilledSize, v.Orders.Market, v.Orders.AvgFillPrice))
 
 			case realtime.ERROR:
-				fmt.Printf("websocker err: %v\n", v.Results)
-
-				// ws has be unsubscribed; reconnect
-				fmt.Println("attempting to reconnect in 1Min", time.Now())
-				ftx.UnSubscribe()
-				time.AfterFunc(time.Minute, ftx.Subscribe)
+				once.Do(func() {
+					fmt.Printf("websocker err: %v\n", v.Results)
+					fmt.Println("attempting to reconnect in 1Min", time.Now())
+					ftx.UnSubscribe()
+					time.AfterFunc(time.Minute, ftx.Subscribe)
+					time.AfterFunc(time.Minute*5, once.Reset)
+				})
 			}
 		}
 	}
