@@ -50,3 +50,7 @@ The dashboard can be used to monitor your open orders and positions. The bot can
 | Dashhoard                            |
 | ------------------------------------ |
 | ![alt text](dashboard/dashboard.png) |
+
+### V2
+
+See the [v2 branch](https://github.com/SC4RECOIN/simple-crypto-breakout-strategy/tree/v2) for more configuration options like shorting and moving averages. This is the branch I am using and testing from but might not be ready for use and is subject to change. It also integrates with slack which I haven't made optional yet.
