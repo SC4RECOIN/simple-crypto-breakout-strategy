@@ -9,3 +9,4 @@ main
 *.pkl
 __pycache__
 *.csv
+*.png

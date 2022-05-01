@@ -18,8 +18,8 @@ class Trader(object):
         stoploss=0.02,
         ma_window=50,
         leverage=1,
-        trading_free=0.0007,
-        slippage=0.00025,
+        trading_free=0.0003,
+        slippage=0.0001,
         enable_shorting=False,
         enable_ma=True,
         logger: Optional[Logger] = None,
@@ -72,12 +72,12 @@ class Trader(object):
             plt.plot(hist / hist[0], label="portfolio value", color="red")
             plt.plot(bench / bench[0], label="buy and hold", color="blue")
             plt.legend()
-            plt.show()
+            plt.savefig("data/perf.png")
 
-    def backtest(self, df: pd.DataFrame):
+    def backtest(self, df: pd.DataFrame, disable_load_bar=True):
         self.new_day(df.iloc[0])
         self.benchmark.append(df.iloc[0].open)
-        for candle in tqdm(df.values, total=len(df)):
+        for candle in tqdm(df.values, total=len(df), disable=disable_load_bar):
             self.report_candle(OHLCV(*candle))
 
     def report_candle(self, candle: OHLCV):
