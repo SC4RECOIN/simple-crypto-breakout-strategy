@@ -94,14 +94,32 @@ class Trader(object):
             self.buy_target = c.close + r * self.long_k
             self.sell_target = c.close - r * self.short_k
 
+            # rp = int(r / c.open * 100)
+            # self.leverage = 2
+            # if rp > 3:
+            #     self.leverage = 4
+            # if rp > 6:
+            #     self.leverage = 6
+            # if rp > 9:
+            #     self.leverage = 8
+
             self.new_day(candle)
 
         # not in position and target is set
         if self.entry_price is None and self.buy_target is not None:
+            ma = np.average(self.benchmark[-self.ma_window :])
+
+            # dist = abs((candle.open - ma) / candle.open)
+            # self.leverage = 4
+            # if dist > 0.03:
+            #     self.leverage = 3
+            # if dist > 0.06:
+            #     self.leverage = 2
+            # if dist > 0.09:
+            #     self.leverage = 1
+
             # long
             if candle.high > self.buy_target:
-                ma = np.average(self.benchmark[-self.ma_window :])
-
                 if not self.enable_ma:
                     self.long = True
                     self.sl = self.buy_target * (1 - self.stoploss)
@@ -116,8 +134,6 @@ class Trader(object):
 
             # short
             elif candle.low < self.sell_target and self.enable_shorting:
-                ma = np.average(self.benchmark[-self.ma_window :])
-
                 if not self.enable_ma:
                     self.long = False
                     self.sl = self.sell_target * (1 + self.stoploss)
@@ -151,6 +167,8 @@ class Trader(object):
         self.entry_price = price
         self.buy_target = None
         self.sell_target = None
+
+        # self.leverage = int(ts.hour / 3)
 
         if self.logger is not None:
             self.logger.log(
