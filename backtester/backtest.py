@@ -70,7 +70,7 @@ if __name__ == "__main__":
     time_2022_01 = 1640995200000
     time_2022_03 = 1646092800000
 
-    df = df[df["ts"] > time_2021_08]
+    df = df[df["ts"] > time_2021_06]
 
     logger = Logger()
     trader = Trader(
@@ -78,9 +78,15 @@ if __name__ == "__main__":
         short_k=0.6,
         stoploss=0.02,
         ma_window=34,
-        leverage=4,
+        leverage=3,
         enable_shorting=True,
         enable_ma=True,
+        dist_to_lev={
+            0: 4,
+            0.03: 3,
+            0.06: 2,
+            0.09: 1,
+        },
         logger=logger,
     )
 

@@ -22,6 +22,7 @@ class Trader(object):
         slippage=0.0001,
         enable_shorting=False,
         enable_ma=True,
+        dist_to_lev=None,
         logger: Optional[Logger] = None,
     ):
         self.logger = logger
@@ -34,6 +35,7 @@ class Trader(object):
         self.enable_shorting = enable_shorting
         self.impact = slippage + trading_free
         self.enable_ma = enable_ma
+        self.dist_to_lev = dist_to_lev
         self.last_start = None
 
         self.balance = 10000
@@ -109,14 +111,11 @@ class Trader(object):
         if self.entry_price is None and self.buy_target is not None:
             ma = np.average(self.benchmark[-self.ma_window :])
 
-            # dist = abs((candle.open - ma) / candle.open)
-            # self.leverage = 4
-            # if dist > 0.03:
-            #     self.leverage = 3
-            # if dist > 0.06:
-            #     self.leverage = 2
-            # if dist > 0.09:
-            #     self.leverage = 1
+            if self.dist_to_lev is not None:
+                dist = abs((candle.open - ma) / candle.open)
+                for dist_thresh, lev in self.dist_to_lev.items():
+                    if dist > dist_thresh:
+                        self.leverage = lev
 
             # long
             if candle.high > self.buy_target:
