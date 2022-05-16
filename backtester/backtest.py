@@ -1,6 +1,5 @@
 from binance.client import Client
 from dataclasses import asdict
-from datetime import datetime
 import pandas as pd
 import numpy as np
 import pathlib
@@ -63,8 +62,9 @@ def find_optimal_params(df: pd.DataFrame):
 
 
 if __name__ == "__main__":
-    df = fetch_hist("BTCUSDT", "2021-06-01")
+    df = fetch_hist("BTCUSDT", "2020-06-01")
 
+    time_2021_01 = 1609502400000
     time_2021_06 = 1622548800000
     time_2021_08 = 1633089600000
     time_2022_01 = 1640995200000
@@ -72,23 +72,32 @@ if __name__ == "__main__":
 
     df = df[df["ts"] > time_2021_06]
 
-    logger = Logger()
-    trader = Trader(
-        long_k=0.65,
-        short_k=0.6,
-        stoploss=0.02,
-        ma_window=34,
-        leverage=3,
-        enable_shorting=True,
-        enable_ma=True,
-        dist_to_lev={
-            0: 4,
-            0.03: 3,
-            0.06: 2,
-            0.09: 1,
+    values = [
+        {
+            0: 8,
+            0.03: 6,
+            0.06: 5,
+            0.09: 3,
+            0.12: 2,
+            0.15: 1,
+            0.18: 0.5,
         },
-        logger=logger,
-    )
+    ]
 
-    trader.backtest(df, True)
-    trader.print_stats(plot=True)
+    for value in values:
+
+        logger = Logger()
+        trader = Trader(
+            long_k=0.65,
+            short_k=0.6,
+            stoploss=0.02,
+            ma_window=34,
+            leverage=4,
+            enable_shorting=True,
+            enable_ma=True,
+            dist_to_lev=value,
+            logger=logger,
+        )
+
+        trader.backtest(df, True)
+        trader.print_stats(plot=True)
