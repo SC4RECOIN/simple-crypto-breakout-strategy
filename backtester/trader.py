@@ -112,7 +112,7 @@ class Trader(object):
             ma = np.average(self.benchmark[-self.ma_window :])
 
             if self.dist_to_lev is not None:
-                dist = abs((candle.open - ma) / candle.open)
+                dist = abs((candle.close - ma) / ma)
                 for dist_thresh, lev in self.dist_to_lev.items():
                     if dist > dist_thresh:
                         self.leverage = lev

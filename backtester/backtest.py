@@ -70,7 +70,7 @@ if __name__ == "__main__":
     time_2022_01 = 1640995200000
     time_2022_03 = 1646092800000
 
-    df = df[df["ts"] > time_2021_06]
+    df = df[df["ts"] > time_2021_01]
 
     values = [
         {
