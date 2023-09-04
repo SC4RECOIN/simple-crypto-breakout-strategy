@@ -62,7 +62,7 @@ def find_optimal_params(df: pd.DataFrame):
 
 
 if __name__ == "__main__":
-    df = fetch_hist("BTCUSDT", "2020-06-01")
+    df = fetch_hist("BTCUSDT", "2023-01-01")
 
     time_2021_01 = 1609502400000
     time_2021_06 = 1622548800000
@@ -70,34 +70,31 @@ if __name__ == "__main__":
     time_2022_01 = 1640995200000
     time_2022_03 = 1646092800000
 
-    df = df[df["ts"] > time_2021_01]
+    # df = df[df["ts"] > time_2022_03]
 
-    values = [
-        {
-            0: 8,
-            0.03: 6,
-            0.06: 5,
-            0.09: 3,
-            0.12: 2,
-            0.15: 1,
-            0.18: 0.5,
-        },
-    ]
+    # values = {
+    #     0: 8,
+    #     0.03: 6,
+    #     0.06: 5,
+    #     0.09: 3,
+    #     0.12: 2,
+    #     0.15: 1,
+    #     0.18: 0.5,
+    # }
+    values = None
 
-    for value in values:
+    logger = Logger()
+    trader = Trader(
+        long_k=0.4,
+        short_k=0.7,
+        stoploss=0.5,
+        ma_window=1,
+        leverage=1,
+        enable_shorting=True,
+        enable_ma=False,
+        dist_to_lev=values,
+        logger=logger,
+    )
 
-        logger = Logger()
-        trader = Trader(
-            long_k=0.65,
-            short_k=0.6,
-            stoploss=0.02,
-            ma_window=34,
-            leverage=4,
-            enable_shorting=True,
-            enable_ma=True,
-            dist_to_lev=value,
-            logger=logger,
-        )
-
-        trader.backtest(df, True)
-        trader.print_stats(plot=True)
+    trader.backtest(df, True)
+    trader.print_stats(plot=True)
