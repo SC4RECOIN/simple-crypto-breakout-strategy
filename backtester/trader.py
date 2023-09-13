@@ -24,6 +24,7 @@ class Trader(object):
         enable_ma=True,
         dist_to_lev=None,
         logger: Optional[Logger] = None,
+        trade_everyday=True,
     ):
         self.logger = logger
 
@@ -35,6 +36,8 @@ class Trader(object):
         self.enable_shorting = enable_shorting
         self.impact = slippage + trading_free
         self.enable_ma = enable_ma
+        self.trade_everyday = trade_everyday
+        self.can_trade = True
         self.dist_to_lev = dist_to_lev
         self.last_start = None
 
@@ -87,6 +90,7 @@ class Trader(object):
 
         # new day
         if (ts - self.last_start).days > 0:
+            had_position = self.entry_price is not None
             self.benchmark.append(candle.close)
             self.close_positions(candle.open)
 
@@ -107,8 +111,13 @@ class Trader(object):
 
             self.new_day(candle)
 
+            # if we had a position, disable trading for the next day
+            self.can_trade = True
+            if had_position and not self.trade_everyday:
+                self.can_trade = False
+
         # not in position and target is set
-        if self.entry_price is None and self.buy_target is not None:
+        if self.entry_price is None and self.buy_target is not None and self.can_trade:
             ma = np.average(self.benchmark[-self.ma_window :])
 
             if self.dist_to_lev is not None:
@@ -166,8 +175,6 @@ class Trader(object):
         self.entry_price = price
         self.buy_target = None
         self.sell_target = None
-
-        # self.leverage = int(ts.hour / 3)
 
         if self.logger is not None:
             self.logger.log(

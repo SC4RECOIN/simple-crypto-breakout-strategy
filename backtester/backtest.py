@@ -89,11 +89,12 @@ if __name__ == "__main__":
         short_k=0.7,
         stoploss=0.5,
         ma_window=1,
-        leverage=1,
+        leverage=7.5,
         enable_shorting=True,
         enable_ma=False,
         dist_to_lev=values,
         logger=logger,
+        trade_everyday=False,
     )
 
     trader.backtest(df, True)
